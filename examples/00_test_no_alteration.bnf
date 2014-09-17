@@ -1,3 +1,5 @@
+# Simple BNF with no alteration or recursion, for sanity checks
+
 <foo> ::= <bar> <baz> ;;
 
 <bar> ::= "asdf"

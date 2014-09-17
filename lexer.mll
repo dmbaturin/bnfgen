@@ -11,7 +11,6 @@ type token =
     | RANGLE
     | EOF
     | SEMI
-
 }
 
 rule token = parse
@@ -33,6 +32,8 @@ rule token = parse
     { EOF }
 | '"'
     { read_string (Buffer.create 17) lexbuf }
+| '#' [^ '\n']+ '\n'
+    { token lexbuf }
 | _
 { raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
 
