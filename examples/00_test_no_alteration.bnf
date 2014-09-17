@@ -1,0 +1,10 @@
+<foo> ::= <bar> <baz> ;;
+
+<bar> ::= "asdf"
+          <quux>
+          "xyzzy"
+;;
+
+<baz> ::= "fgs" ;;
+
+<quux> ::= "fds"
