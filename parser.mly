@@ -38,9 +38,14 @@ symbol:
     | s = nonterminal { Nonterminal s }
 ;
 
-rule_rhs:
+rule_rhs_part:
     | hd = symbol { [hd] }
-    | tl = rule_rhs; hd = symbol { hd :: tl }
+    | tl = rule_rhs_part; hd = symbol { hd :: tl }
+;
+
+rule_rhs:
+    | p = rule_rhs_part { [(List.rev p)] }
+    | tl = rule_rhs; OR; hd = rule_rhs_part { (List.rev hd) :: tl }
 ;
 
 rule:

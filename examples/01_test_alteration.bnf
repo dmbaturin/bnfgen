@@ -1,0 +1,11 @@
+# Simple BNF with alteration
+
+<foo> ::= 
+          "yuio" <bar> "jkl"
+        | <baz> "vbnm"
+        | "xcvb" <quux>
+;;
+
+<bar> ::= "asdf" | "fghj" ;;
+
+<baz> ::= "zxcv" | "rtyu" 
