@@ -4,6 +4,10 @@ type symbol =
 
 type rule = Rule of string * (symbol list list)
 
+type rule_rhs = Rule_rhs of symbol list list
+
+type rule_part = Rule_part of symbol list
+
 type rules = rule list
 
 type grammar = rules
@@ -34,3 +38,35 @@ let string_of_rule r =
 let rec string_of_rules r =
     let rule_str_list = List.map string_of_rule r in
     String.concat "\n" rule_str_list
+
+(* Rule reduction *)
+
+let pick_element l =
+    let num = Random.int (List.length l) in
+    List.nth l num
+
+let has_element x l =
+    List.exists (fun a -> a = x) l
+
+let rec find_production name grammar =
+    match grammar with
+    | [] -> None
+    | hd :: tl ->
+        let Rule (lhs, rhs) = hd in
+        if lhs = name then Some (Rule_rhs rhs)
+        else find_production name tl
+
+let rec reduce_rhs rhs grammar =
+    match rhs with
+    | [] -> ""
+    | hd :: tl ->
+        match hd with
+        | Terminal hd -> hd ^ " " ^ (reduce_rhs tl grammar)
+        | Nonterminal hd ->
+            (reduce hd grammar) ^ (reduce_rhs tl grammar)
+and reduce name grammar =
+    let r = find_production name grammar in
+    match r with
+    | None -> failwith "Rule not found"
+    | Some Rule_rhs rhs ->
+        reduce_rhs (pick_element rhs) grammar
