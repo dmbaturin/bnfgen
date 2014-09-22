@@ -1,6 +1,6 @@
 # Simple BNF with no alteration or recursion, for sanity checks
 
-<foo> ::= <bar> <baz> ;;
+<start> ::= <bar> <baz> ;;
 
 <bar> ::= "asdf"
           <quux>

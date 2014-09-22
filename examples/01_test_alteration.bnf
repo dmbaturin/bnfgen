@@ -1,6 +1,6 @@
 # Simple BNF with alteration
 
-<foo> ::= 
+<start> ::=
           "yuio" <bar> "jkl"
         | <baz> "vbnm"
         | "xcvb" <quux>
@@ -8,4 +8,6 @@
 
 <bar> ::= "asdf" | "fghj" ;;
 
-<baz> ::= "zxcv" | "rtyu" 
+<baz> ::= "zxcv" | "rtyu" ;;
+
+<quux> ::= "<quux>"
