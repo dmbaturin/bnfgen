@@ -67,6 +67,6 @@ let rec reduce_rhs rhs grammar =
 and reduce name grammar =
     let r = find_production name grammar in
     match r with
-    | None -> failwith "Rule not found"
+    | None -> failwith ("Rule " ^ name ^ " not found")
     | Some Rule_rhs rhs ->
         reduce_rhs (pick_element rhs) grammar
