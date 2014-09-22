@@ -4,6 +4,7 @@
 
 %token <string> IDENTIFIER
 %token <string> STRING
+%token <int> NUMBER
 %token DEF
 %token OR
 %token LANGLE
@@ -38,18 +39,23 @@ symbol:
     | s = nonterminal { Nonterminal s }
 ;
 
-rule_rhs_part:
+rule_rhs_symbols:
     | hd = symbol { [hd] }
-    | tl = rule_rhs_part; hd = symbol { hd :: tl }
+    | tl = rule_rhs_symbols; hd = symbol { hd :: tl }
+;
+
+rule_rhs_part:
+    | n = NUMBER; r = rule_rhs_symbols { Rule_part (n, (List.rev r)) }
+    | r = rule_rhs_symbols { Rule_part (1, (List.rev r)) }
 ;
 
 rule_rhs:
-    | p = rule_rhs_part { [(List.rev p)] }
-    | tl = rule_rhs; OR; hd = rule_rhs_part { (List.rev hd) :: tl }
+    | p = rule_rhs_part { [p]  }
+    | tl = rule_rhs; OR; hd = rule_rhs_part { hd :: tl }
 ;
 
 rule:
-     lhs = nonterminal; DEF; rhs = rule_rhs; { Rule (lhs, List.rev rhs) } 
+     lhs = nonterminal; DEF; rhs = rule_rhs; { Rule (lhs, Rule_rhs (List.rev rhs)) } 
 ;
 
 rules:

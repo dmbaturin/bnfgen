@@ -5,6 +5,7 @@ exception Error of string
 type token = 
     | IDENTIFIER of string
     | STRING of string
+    | NUMBER of int
     | DEF
     | OR
     | LANGLE
@@ -28,6 +29,8 @@ rule token = parse
     { SEMI }
 | ['a' - 'z' 'A' - 'Z']+ as s
     { IDENTIFIER s}
+| ['0' - '9']+ as i
+    { NUMBER (int_of_string i) }
 | eof
     { EOF }
 | '"'
