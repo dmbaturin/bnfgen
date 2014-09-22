@@ -3,6 +3,8 @@ open Grammar
 
 let filename = Sys.argv.(1)
 
+let () = Random.self_init()
+
 let main () =
     let input = open_in filename in
     let filebuf = Lexing.from_channel input in
