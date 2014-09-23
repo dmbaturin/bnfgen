@@ -50,12 +50,12 @@ rule_rhs_part:
 ;
 
 rule_rhs:
-    | p = rule_rhs_part { [p]  }
+    | p = rule_rhs_part { [p] }
     | tl = rule_rhs; OR; hd = rule_rhs_part { hd :: tl }
 ;
 
 rule:
-     lhs = nonterminal; DEF; rhs = rule_rhs; { Rule (lhs, Rule_rhs (List.rev rhs)) } 
+     lhs = nonterminal; DEF; rhs = rule_rhs; { Rule (lhs, Rule_rhs (sort_rule_parts rhs)) }
 ;
 
 rules:

@@ -43,11 +43,30 @@ let rec string_of_rules r =
     let rule_str_list = List.map string_of_rule r in
     String.concat "\n" rule_str_list
 
-(* Rule reduction *)
+(** Rule reduction *)
+
+(* We support weight for cases in rules with alternation.
+   So we need to support weighted random selection here. *)
+let total_weight l =
+    let get_weight x =
+        let Rule_part (x', _) = x in x' in
+    let weights = List.map get_weight l in
+    List.fold_left (fun x y -> x + y) 0 weights
+
+let rec weighted_random acc r l =
+    match l with
+    | [] -> failwith "Cannot select anything from empty list"
+    | [x] -> let Rule_part (w, c) = x in c
+    | hd :: tl ->
+        let Rule_part (w, c) = hd in
+        let acc' = acc + w in
+        if r < acc' then c
+        else weighted_random acc' r tl
 
 let pick_element l =
-    let num = Random.int (List.length l) in
-    List.nth l num
+    let tw = total_weight l in
+    let r = Random.int tw in (* print_endline (string_of_int r); *)
+    weighted_random 0 r l
 
 let has_element x l =
     List.exists (fun a -> a = x) l
@@ -59,6 +78,12 @@ let rec find_production name grammar =
         let Rule (lhs, rhs) = hd in
         if lhs = name then Some rhs
         else find_production name tl
+
+let sort_rule_parts l =
+    let compare_weight x y =
+        let Rule_part (wx, _) = x and Rule_part (wy, _) = y in
+        if wx > wy then 0 else 1
+    in List.sort compare_weight l
 
 let rec reduce_rhs rhs grammar =
     match rhs with
@@ -73,5 +98,5 @@ and reduce name grammar =
     match r with
     | None -> failwith ("Rule " ^ name ^ " not found")
     | Some Rule_rhs rhs ->
-        let Rule_part (weight, symbols) = pick_element rhs in
+        let symbols = pick_element rhs in
         reduce_rhs symbols grammar
