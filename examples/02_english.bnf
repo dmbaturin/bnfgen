@@ -1,0 +1,17 @@
+# A trivial subset of English.
+
+<start> ::= <NP> <VP> ;;
+
+<NP> ::= <article> <subject> ;;
+
+<VP> ::= <verb> <article> <object> ;;
+
+<article> ::= "a" | "the" ;;
+
+<subject> ::= "customer"
+            | "system administrator"
+            | "programmer" ;;
+
+<object> ::= "system" | "compiler" | "program" ;;
+
+<verb> ::= "used" | "installed" | "developed"
