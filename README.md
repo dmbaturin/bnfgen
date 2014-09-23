@@ -5,10 +5,13 @@ Generates string based on context-free grammars
 
 ## Building
 
-You need the OCaml compiler and menhir.
+You need the OCaml compiler, menhir, ocamlbuild, and oasis.
 
 ```
-ocamlbuild -use-menhir -menhir "menhir -v --external-tokens Lexer" main.native
+ocaml setup.ml -configure [--prefix <prefix>]
+ocaml setup.ml -build
+ocaml setup.ml -install
+
 ```
 
 ## Usage
