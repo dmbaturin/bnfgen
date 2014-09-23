@@ -1,0 +1,31 @@
+true: use_menhir, explain, extern_tokens
+
+# OASIS_START
+# DO NOT EDIT (digest: c820d26994623573d7472b57c617c504)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library grammar
+"src/grammar.cmxs": use_grammar
+# Library lexer
+"src/lexer.cmxs": use_lexer
+# Library parser
+"src/parser.cmxs": use_parser
+# Executable cfgen
+<src/cfgen.{native,byte}>: use_grammar
+<src/cfgen.{native,byte}>: use_lexer
+<src/cfgen.{native,byte}>: use_parser
+<src/*.ml{,i}>: use_grammar
+<src/*.ml{,i}>: use_lexer
+<src/*.ml{,i}>: use_parser
+# OASIS_STOP
