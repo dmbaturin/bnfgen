@@ -85,18 +85,18 @@ let sort_rule_parts l =
         if wx > wy then 0 else 1
     in List.sort compare_weight l
 
-let rec reduce_rhs rhs grammar =
+let rec reduce_rhs rhs grammar delimiter =
     match rhs with
     | [] -> ""
     | hd :: tl ->
         match hd with
-        | Terminal hd -> hd ^ " " ^ (reduce_rhs tl grammar)
+        | Terminal hd -> hd ^ delimiter ^ (reduce_rhs tl grammar delimiter)
         | Nonterminal hd ->
-            (reduce hd grammar) ^ (reduce_rhs tl grammar)
-and reduce name grammar =
+            (reduce hd grammar delimiter) ^ (reduce_rhs tl grammar delimiter)
+and reduce name grammar delimiter =
     let r = find_production name grammar in
     match r with
     | None -> failwith ("Rule " ^ name ^ " not found")
     | Some Rule_rhs rhs ->
         let symbols = pick_element rhs in
-        reduce_rhs symbols grammar
+        reduce_rhs symbols grammar delimiter
