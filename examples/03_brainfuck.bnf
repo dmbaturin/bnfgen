@@ -1,0 +1,17 @@
+<start> ::= <statements> ;;
+
+<statements> ::= 100 <statements> <statement> | <statement> ;;
+
+<statement> ::= <loop> | <commands> ;;
+
+<loop> ::= "[" <commands> "]" ;;
+
+<commands> ::= 50 <commands> <command> | <command> ;;
+
+<command> ::= <ptr> | <arithm> | <io> ;;
+
+<ptr> ::= ">" | "<" ;;
+
+<arithm> ::= "+" | "-" ;;
+
+<io> ::= "." | ","
