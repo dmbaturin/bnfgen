@@ -611,5 +611,4 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 # 613 "myocamlbuild.ml"
 (* OASIS_STOP *)
-flag ["ocaml"; "menhir"; "extern_tokens"] & S[A"--external-tokens"; A"Lexer"];
 Ocamlbuild_plugin.dispatch dispatch_default;;

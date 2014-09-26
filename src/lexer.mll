@@ -1,17 +1,9 @@
 {
 
+open Parser
+
 exception Error of string
 
-type token = 
-    | IDENTIFIER of string
-    | STRING of string
-    | NUMBER of int
-    | DEF
-    | OR
-    | LANGLE
-    | RANGLE
-    | EOF
-    | SEMI
 }
 
 rule token = parse

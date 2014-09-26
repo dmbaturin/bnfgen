@@ -1,4 +1,4 @@
-true: use_menhir, explain, extern_tokens
+true: use_menhir, explain
 
 # OASIS_START
 # DO NOT EDIT (digest: c820d26994623573d7472b57c617c504)

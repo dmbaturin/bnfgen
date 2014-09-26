@@ -12,25 +12,9 @@ Library grammar
   CompiledObject: best
   Install: false
 
-Library parser
-  Modules: Parser
-  Path: src/
-  BuildTools: ocamlbuild
-  BuildDepends: grammar, lexer
-  CompiledObject: best
-  Install: false
-
-Library lexer
-  Modules: Lexer
-  Path: src/
-  BuildTools: ocamlbuild
-  BuildDepends: grammar
-  CompiledObject: best
-  Install: false
-
 Executable cfgen
   Path:       src/
   BuildTools: ocamlbuild
   MainIs:     cfgen.ml
   CompiledObject: best
-  BuildDepends: grammar, parser, lexer
+  BuildDepends: grammar
