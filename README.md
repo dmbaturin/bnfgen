@@ -1,7 +1,24 @@
 cfgen
 =====
 
-Generates string based on context-free grammars
+Generates string based on context-free grammars.
+Can be used for parser fuzzing or amusement.
+
+```
+$ cat examples/02_english.bnf 
+# A trivial subset of English.
+<start> ::= <NP> <VP> ;;
+<NP> ::= <article> <subject> ;;
+<VP> ::= <verb> <article> <object> ;;
+<article> ::= "a" | "the" ;;
+<subject> ::= "customer"
+            | "system administrator"
+            | "programmer" ;;
+<object> ::= "system" | "compiler" | "program" ;;
+
+$ cfgen examples/02_english.bnf
+a system administrator installed a compiler
+```
 
 ## Building
 
