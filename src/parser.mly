@@ -12,7 +12,7 @@
 %token EOF
 %token SEMI
 
-%start <Grammar.rules> grammar
+%start <Grammar.grammar> grammar
 %%
 
 /* Usual BNF with minor additions.
@@ -45,8 +45,8 @@ rule_rhs_symbols:
 ;
 
 rule_rhs_part:
-    | n = NUMBER; r = rule_rhs_symbols { Rule_part (n, (List.rev r)) }
-    | r = rule_rhs_symbols { Rule_part (1, (List.rev r)) }
+    | n = NUMBER; r = rule_rhs_symbols { { weight = n; symbols = (List.rev r) } }
+    | r = rule_rhs_symbols { { weight = 1; symbols = (List.rev r) } }
 ;
 
 rule_rhs:
@@ -55,7 +55,7 @@ rule_rhs:
 ;
 
 rule:
-     lhs = nonterminal; DEF; rhs = rule_rhs; { Rule (lhs, Rule_rhs (sort_rule_parts rhs)) }
+     _lhs = nonterminal; DEF; _rhs = rule_rhs; { { lhs = _lhs; rhs = (sort_rule_parts _rhs) } }
 ;
 
 rules:

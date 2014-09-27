@@ -2,15 +2,11 @@ type symbol =
     | Terminal of string 
     | Nonterminal of string
 
-type rule_part = Rule_part of int * (symbol list)
+type rule_part = { weight: int; symbols: symbol list }
 
-type rule_rhs = Rule_rhs of rule_part list
+type rule = { lhs: string; rhs: rule_part list }
 
-type rule = Rule of string * rule_rhs
-
-type rules = rule list
-
-type grammar = rules
+type grammar = rule list
 
 
 (* Anything to string, mainly for parser debug *)
@@ -21,10 +17,9 @@ let string_of_symbol s =
     | Nonterminal s -> "<" ^ s ^ ">" (* <nonterminal> *)
 
 let string_of_rule_rhs_part r =
-    let Rule_part (weight, symbols) = r in
-    let l = List.map string_of_symbol symbols in
+    let l = List.map string_of_symbol r.symbols in
     let sym_str = String.concat " " l in
-    let weight_str = if weight = 1 then "" else string_of_int weight in
+    let weight_str = if r.weight = 1 then "" else string_of_int r.weight in
     String.concat " " [weight_str; sym_str]
 
 let rec string_of_rule_rhs r =
@@ -35,9 +30,7 @@ let rec string_of_rule_rhs r =
         (string_of_rule_rhs_part hd) ^ " | " ^ (string_of_rule_rhs tl)
 
 let string_of_rule r =
-    let Rule (lhs, rhs) = r in
-    let Rule_rhs rhs_symbols = rhs in
-    (string_of_symbol (Nonterminal lhs)) ^ " ::= " ^ (string_of_rule_rhs rhs_symbols)
+    (string_of_symbol (Nonterminal r.lhs)) ^ " ::= " ^ (string_of_rule_rhs r.rhs)
 
 let rec string_of_rules r =
     let rule_str_list = List.map string_of_rule r in
@@ -48,19 +41,15 @@ let rec string_of_rules r =
 (* We support weight for cases in rules with alternation.
    So we need to support weighted random selection here. *)
 let total_weight l =
-    let get_weight x =
-        let Rule_part (x', _) = x in x' in
-    let weights = List.map get_weight l in
-    List.fold_left (fun x y -> x + y) 0 weights
+    List.fold_left (fun x y -> x + y.weight) 0 l
 
 let rec weighted_random acc r l =
     match l with
     | [] -> failwith "Cannot select anything from empty list"
-    | [x] -> let Rule_part (w, c) = x in c
+    | [x] -> x.symbols
     | hd :: tl ->
-        let Rule_part (w, c) = hd in
-        let acc' = acc + w in
-        if r < acc' then c
+        let acc' = acc + hd.weight in
+        if r < acc' then hd.symbols
         else weighted_random acc' r tl
 
 let pick_element l =
@@ -75,15 +64,11 @@ let rec find_production name grammar =
     match grammar with
     | [] -> None
     | hd :: tl ->
-        let Rule (lhs, rhs) = hd in
-        if lhs = name then Some rhs
+        if hd.lhs = name then Some hd.rhs
         else find_production name tl
 
 let sort_rule_parts l =
-    let compare_weight x y =
-        let Rule_part (wx, _) = x and Rule_part (wy, _) = y in
-        if wx > wy then 0 else 1
-    in List.sort compare_weight l
+    List.sort (fun x y -> compare x.weight y.weight) l
 
 let rec reduce_rhs rhs grammar delimiter =
     match rhs with
@@ -97,6 +82,6 @@ and reduce name grammar delimiter =
     let r = find_production name grammar in
     match r with
     | None -> failwith ("Rule " ^ name ^ " not found")
-    | Some Rule_rhs rhs ->
+    | Some rhs ->
         let symbols = pick_element rhs in
         reduce_rhs symbols grammar delimiter
