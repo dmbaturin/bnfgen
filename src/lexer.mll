@@ -28,7 +28,7 @@ rule token = parse
 | '"'
     { read_string (Buffer.create 17) lexbuf }
 | '#' [^ '\n']+ '\n'
-    { token lexbuf }
+    { Lexing.new_line lexbuf ; token lexbuf }
 | _
 { raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
 
@@ -42,6 +42,7 @@ and read_string buf =
   | '\\' 'n'  { Buffer.add_char buf '\n'; read_string buf lexbuf }
   | '\\' 'r'  { Buffer.add_char buf '\r'; read_string buf lexbuf }
   | '\\' 't'  { Buffer.add_char buf '\t'; read_string buf lexbuf }
+  | '\n'      { Lexing.new_line lexbuf; Buffer.add_char buf '\n'; read_string buf lexbuf }
   | [^ '"' '\\']+
     { Buffer.add_string buf (Lexing.lexeme lexbuf);
       read_string buf lexbuf
