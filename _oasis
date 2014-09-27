@@ -4,6 +4,8 @@ Version:     0.0.1
 Synopsis:    A context-free grammar based random string generator
 Authors:     Daniil Baturin
 License:     MIT
+BuildTools: ocamlbuild
+Plugins: META (0.4), DevFiles (0.4)
 
 Library grammar
   Modules: Grammar
