@@ -20,14 +20,16 @@
    Left-hand and right-hand sides are separated by "::=".
    Rules are separated by double semicolon to handle multiline rules
    in LR(1)-friendly manner.
+   Rule parts may contain "weight" before symbols,
+   that affects how often they are selected.
 
    As in:
-     <start> ::= <nonterminal> "terminal" ;;
+     <start> ::= 10 <nonterminal> "terminal" | "terminal" ;;
      <nonterminal> = "nonterminal"
  */
 
 nonterminal:
-    LANGLE; i = IDENTIFIER; RANGLE; { i }
+    x = delimited(LANGLE, IDENTIFIER, RANGLE) { x }
 ;
 
 terminal:
@@ -45,8 +47,12 @@ rule_rhs_symbols:
 ;
 
 rule_rhs_part:
-    | n = NUMBER; r = rule_rhs_symbols { { weight = n; symbols = (List.rev r) } }
-    | r = rule_rhs_symbols { { weight = 1; symbols = (List.rev r) } }
+    | n = NUMBER; r = rule_rhs_symbols {
+          { weight = n; symbols = (List.rev r) }
+      }
+    | r = rule_rhs_symbols {
+          { weight = 1; symbols = (List.rev r) }
+      }
 ;
 
 rule_rhs:
@@ -55,15 +61,17 @@ rule_rhs:
 ;
 
 rule:
-     _lhs = nonterminal; DEF; _rhs = rule_rhs; { { lhs = _lhs; rhs = (sort_rule_parts _rhs) } }
+     r = separated_pair(nonterminal, DEF, rule_rhs) {
+         { lhs = (fst r); rhs = (sort_rule_parts (snd r)) }
+     }
 ;
 
 rules:
     | (* empty *) { [] }
     | hd = rule { [hd] }
-    | tl = rules; SEMI; hd = rule { hd :: tl } 
+    | tl = rules; SEMI; hd = rule; { hd :: tl }
 ;
 
 %public grammar:
-    r = rules EOF { List.rev r }
+    r = rules; option(SEMI); EOF { List.rev r }
 ;
