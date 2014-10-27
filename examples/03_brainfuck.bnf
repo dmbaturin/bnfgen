@@ -6,12 +6,20 @@
 
 <loop> ::= "[" <commands> "]" ;;
 
-<commands> ::= 50 <commands> <command> | <command> ;;
+<commands> ::= 10 <commands> <command> | <command> ;;
 
-<command> ::= <ptr> | <arithm> | <io> ;;
+<command> ::= 5 <ptrgroup> <arithmgroup> | <io> ;;
 
-<ptr> ::= ">" | "<" ;;
+<ptrinc> ::= 5 <ptrinc> ">" | ">" ;;
 
-<arithm> ::= "+" | "-" ;;
+<ptrdec> ::= 5 <ptrdec> "<" | "<" ;;
+
+<valinc> ::= 5 <valinc> "+" | "+" ;;
+
+<valdec> ::= 5 <valdec> "+" | "-" ;;
+
+<ptrgroup> ::= 5 <ptrinc> | <ptrdec> ;;
+
+<arithmgroup> ::= 5 <valinc> | <valdec> ;;
 
 <io> ::= "." | ","
