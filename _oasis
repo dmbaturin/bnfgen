@@ -1,7 +1,7 @@
 OASISFormat: 0.4
 Name:        cfgen
-Version:     0.0.1
-Synopsis:    A context-free grammar based random string generator
+Version:     1.0
+Synopsis:    A context-free grammar based random text generator
 Authors:     Daniil Baturin
 License:     MIT
 BuildTools: ocamlbuild
