@@ -39,7 +39,7 @@ rule token = parse
     { LANGLE }
 | '>'
     { RANGLE }
-| ";;"
+| ";"
     { SEMI }
 | ['a' - 'z' 'A' - 'Z']+ as s
     { IDENTIFIER s}

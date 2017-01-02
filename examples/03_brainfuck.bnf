@@ -1,25 +1,25 @@
-<start> ::= <statements> ;;
+<start> ::= <statements>;
 
-<statements> ::= 100 <statements> <statement> | <statement> ;;
+<statements> ::= 100 <statements> <statement> | <statement>;
 
-<statement> ::= <loop> | <commands> ;;
+<statement> ::= <loop> | <commands>;
 
-<loop> ::= "[" <commands> "]" ;;
+<loop> ::= "[" <commands> "]";
 
-<commands> ::= 10 <commands> <command> | <command> ;;
+<commands> ::= 10 <commands> <command> | <command>;
 
-<command> ::= 5 <ptrgroup> <arithmgroup> | <io> ;;
+<command> ::= 5 <ptrgroup> <arithmgroup> | <io>;
 
-<ptrinc> ::= 5 <ptrinc> ">" | ">" ;;
+<ptrinc> ::= 5 <ptrinc> ">" | ">";
 
-<ptrdec> ::= 5 <ptrdec> "<" | "<" ;;
+<ptrdec> ::= 5 <ptrdec> "<" | "<";
 
-<valinc> ::= 5 <valinc> "+" | "+" ;;
+<valinc> ::= 5 <valinc> "+" | "+";
 
-<valdec> ::= 5 <valdec> "+" | "-" ;;
+<valdec> ::= 5 <valdec> "+" | "-";
 
-<ptrgroup> ::= 5 <ptrinc> | <ptrdec> ;;
+<ptrgroup> ::= 5 <ptrinc> | <ptrdec>;
 
-<arithmgroup> ::= 5 <valinc> | <valdec> ;;
+<arithmgroup> ::= 5 <valinc> | <valdec>;
 
 <io> ::= "." | ","

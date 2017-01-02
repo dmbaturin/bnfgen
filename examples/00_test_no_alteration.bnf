@@ -1,12 +1,12 @@
 # Simple BNF with no alteration or recursion, for sanity checks
 
-<start> ::= <bar> <baz> ;;
+<start> ::= <bar> <baz> ;
 
 <bar> ::= "asdf"
           <quux>
           "xyzzy"
-;;
+;
 
-<baz> ::= "fgs" ;;
+<baz> ::= "fgs" ;
 
 <quux> ::= "fds"

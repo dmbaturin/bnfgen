@@ -1,17 +1,18 @@
 # A trivial subset of English.
 
-<start> ::= <NP> <VP> ;;
+<start> ::= <NP> <VP>;
 
-<NP> ::= <article> <subject> ;;
+<NP> ::= <article> <subject>;
 
-<VP> ::= <verb> <article> <object> ;;
+<VP> ::= <verb> <article> <object>;
 
-<article> ::= "a" | "the" ;;
+<article> ::= "a" | "the";
 
 <subject> ::= "customer"
             | "system administrator"
-            | "programmer" ;;
+            | "programmer"
+;
 
-<object> ::= "system" | "compiler" | "program" ;;
+<object> ::= "system" | "compiler" | "program";
 
 <verb> ::= "used" | "installed" | "developed"
