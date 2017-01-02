@@ -40,13 +40,13 @@
 /* Usual BNF with minor additions.
    Terminals are in double quotes. Nonterminals are in angle brackets.
    Left-hand and right-hand sides are separated by "::=".
-   Rules are separated by double semicolon to handle multiline rules
-   in LR(1)-friendly manner.
+   Rules are separated by a semicolon to handle multiline rules
+   in an LR(1)-friendly manner.
    Rule parts may contain "weight" before symbols,
    that affects how often they are selected.
 
    As in:
-     <start> ::= 10 <nonterminal> "terminal" | "terminal" ;;
+     <start> ::= 10 <nonterminal> "terminal" | "terminal" ;
      <nonterminal> = "nonterminal"
  */
 
