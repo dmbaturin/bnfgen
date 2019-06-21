@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 Daniil Baturin
+ * Copyright (c) 2014, 2019 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ let rec string_of_rule_rhs r =
 let string_of_rule r =
     Printf.sprintf "%s ::= %s" (string_of_symbol (Nonterminal r.lhs)) (string_of_rule_rhs r.rhs)
 
-let rec string_of_rules r =
+let string_of_rules r =
     let rule_str_list = List.map string_of_rule r in
     String.concat "\n" rule_str_list
 
@@ -79,10 +79,7 @@ let pick_element l =
     let r = Random.int tw in
     weighted_random 0 r l
 
-let has_element x l =
-    List.exists (fun a -> a = x) l
-
-let rec find_production name grammar =
+let find_production name grammar =
     try
         let rule = List.find (fun x -> x.lhs = name) grammar in
         Some rule.rhs
