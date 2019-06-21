@@ -1,0 +1,8 @@
+(ocamllex lexer)
+(menhir
+ (modules parser))
+
+(executable
+ (name cfgen)
+ (public_name cfgen))
+
