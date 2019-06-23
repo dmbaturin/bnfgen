@@ -79,8 +79,7 @@ and read_double_quoted_string buf =
     { Buffer.add_string buf (Lexing.lexeme lexbuf);
       read_double_quoted_string buf lexbuf
     }
-  | _ { raise (Error (Printf.sprintf "Illegal string character: %s" (Lexing.lexeme lexbuf))) }
-  | eof { lexing_error lexbuf "String is not terminated" }
+  | eof { lexing_error lexbuf "Quoted string is missing the closing double quote" }
 
 and read_single_quoted_string buf =
   parse
@@ -99,5 +98,4 @@ and read_single_quoted_string buf =
     { Buffer.add_string buf (Lexing.lexeme lexbuf);
       read_single_quoted_string buf lexbuf
     }
-  | _ { raise (Error (Printf.sprintf "Illegal string character: %s" (Lexing.lexeme lexbuf))) }
-| eof { raise (Error ("String is not terminated")) }
+  | eof { lexing_error lexbuf "Quoted string is missing the closing single quote" }
