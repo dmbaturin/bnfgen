@@ -49,12 +49,12 @@ let () = let filename = ref "" and
             let input = open_in !filename in
             let filebuf = Lexing.from_channel input in
             try
-                let g = Parser.grammar Lexer.token filebuf in
+                let g = Bnf_parser.grammar Bnf_lexer.token filebuf in
                 if !action = Dump then print_endline (string_of_rules g)
                 else print_endline (reduce !start_symbol g !separator)
             with
-            | Lexer.Error msg ->
+            | Bnf_lexer.Error msg ->
                 Printf.eprintf "%s%!" msg
-            | Parser.Error  ->
+            | Bnf_parser.Error  ->
                 Printf.eprintf "At offset %d: syntax error.\n%!" (Lexing.lexeme_start filebuf)
         end

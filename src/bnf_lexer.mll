@@ -22,7 +22,7 @@
 
 {
 
-open Parser
+open Bnf_parser
 
 exception Error of string
 

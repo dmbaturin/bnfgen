@@ -1,8 +1,7 @@
-(ocamllex lexer)
+(ocamllex bnf_lexer)
 (menhir
- (modules parser))
+ (modules bnf_parser))
 
 (executable
  (name cfgen)
  (public_name cfgen))
-
