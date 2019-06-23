@@ -27,9 +27,6 @@ open Bnf_parser
 exception Error of string
 
 let lexing_error lexbuf msg =
-(*  let p = Lexing.lexeme_start_p lexbuf in
-  let lnum = p.Lexing.pos_lnum in
-  let pos =  p.Lexing.pos_cnum - p.Lexing.pos_bol + 1 in *)
   let line, column = Util.get_lexing_position lexbuf in
   let err = Printf.sprintf "Syntax error on line %d, character %d: %s" line column msg in
   raise (Error err)
