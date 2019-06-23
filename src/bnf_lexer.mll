@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 Daniil Baturin
+ * Copyright (c) 2014, 2019 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,19 @@ open Bnf_parser
 
 exception Error of string
 
+let lexing_error lexbuf msg =
+(*  let p = Lexing.lexeme_start_p lexbuf in
+  let lnum = p.Lexing.pos_lnum in
+  let pos =  p.Lexing.pos_cnum - p.Lexing.pos_bol + 1 in *)
+  let line, column = Util.get_lexing_position lexbuf in
+  let err = Printf.sprintf "Syntax error on line %d, character %d: %s" line column msg in
+  raise (Error err)
+
 }
 
 rule token = parse
-| [' ' '\t' '\n']
+| '\n' { Lexing.new_line lexbuf; token lexbuf }
+| [' ' '\t' '\r' ]
     { token lexbuf }
 | "::="
     { DEF }
@@ -47,27 +56,51 @@ rule token = parse
     { NUMBER (int_of_string i) }
 | eof
     { EOF }
+| '''
+    { read_single_quoted_string (Buffer.create 16) lexbuf }
 | '"'
-    { read_string (Buffer.create 16) lexbuf }
+    { read_double_quoted_string (Buffer.create 16) lexbuf }
 | '#' [^ '\n']+ '\n'
     { Lexing.new_line lexbuf ; token lexbuf }
-| _
-{ raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
+| _ as bad_char
+{ lexing_error lexbuf (Printf.sprintf "unexpected character \'%c\'" bad_char) }
 
-and read_string buf =
+and read_double_quoted_string buf =
   parse
   | '"'       { STRING (Buffer.contents buf) }
-  | '\\' '/'  { Buffer.add_char buf '/'; read_string buf lexbuf }
-  | '\\' '\\' { Buffer.add_char buf '\\'; read_string buf lexbuf }
-  | '\\' 'b'  { Buffer.add_char buf '\b'; read_string buf lexbuf }
-  | '\\' 'f'  { Buffer.add_char buf '\012'; read_string buf lexbuf }
-  | '\\' 'n'  { Buffer.add_char buf '\n'; read_string buf lexbuf }
-  | '\\' 'r'  { Buffer.add_char buf '\r'; read_string buf lexbuf }
-  | '\\' 't'  { Buffer.add_char buf '\t'; read_string buf lexbuf }
-  | '\n'      { Lexing.new_line lexbuf; Buffer.add_char buf '\n'; read_string buf lexbuf }
+  | '\\' '/'  { Buffer.add_char buf '/'; read_double_quoted_string buf lexbuf }
+  | '\\' '\\' { Buffer.add_char buf '\\'; read_double_quoted_string buf lexbuf }
+  | '\\' 'b'  { Buffer.add_char buf '\b'; read_double_quoted_string buf lexbuf }
+  | '\\' 'f'  { Buffer.add_char buf '\012'; read_double_quoted_string buf lexbuf }
+  | '\\' 'n'  { Buffer.add_char buf '\n'; read_double_quoted_string buf lexbuf }
+  | '\\' 'r'  { Buffer.add_char buf '\r'; read_double_quoted_string buf lexbuf }
+  | '\\' 't'  { Buffer.add_char buf '\t'; read_double_quoted_string buf lexbuf }
+  | '\\' '\'' { Buffer.add_char buf '\''; read_double_quoted_string buf lexbuf }
+  | '\\' '"' { Buffer.add_char buf '"'; read_double_quoted_string buf lexbuf }
+  | '\n'      { Lexing.new_line lexbuf; Buffer.add_char buf '\n'; read_double_quoted_string buf lexbuf }
   | [^ '"' '\\']+
     { Buffer.add_string buf (Lexing.lexeme lexbuf);
-      read_string buf lexbuf
+      read_double_quoted_string buf lexbuf
     }
   | _ { raise (Error (Printf.sprintf "Illegal string character: %s" (Lexing.lexeme lexbuf))) }
-  | eof { raise (Error ("String is not terminated")) }
+  | eof { lexing_error lexbuf "String is not terminated" }
+
+and read_single_quoted_string buf =
+  parse
+  | '''       { STRING (Buffer.contents buf) }
+  | '\\' '/'  { Buffer.add_char buf '/'; read_single_quoted_string buf lexbuf }
+  | '\\' '\\' { Buffer.add_char buf '\\'; read_single_quoted_string buf lexbuf }
+  | '\\' 'b'  { Buffer.add_char buf '\b'; read_single_quoted_string buf lexbuf }
+  | '\\' 'f'  { Buffer.add_char buf '\012'; read_single_quoted_string buf lexbuf }
+  | '\\' 'n'  { Buffer.add_char buf '\n'; read_single_quoted_string buf lexbuf }
+  | '\\' 'r'  { Buffer.add_char buf '\r'; read_single_quoted_string buf lexbuf }
+  | '\\' 't'  { Buffer.add_char buf '\t'; read_single_quoted_string buf lexbuf }
+  | '\\' '\'' { Buffer.add_char buf '\''; read_single_quoted_string buf lexbuf }
+  | '\\' '"' { Buffer.add_char buf '"'; read_single_quoted_string buf lexbuf }
+  | '\n'      { Lexing.new_line lexbuf; Buffer.add_char buf '\n'; read_single_quoted_string buf lexbuf }
+  | [^ ''' '\\']+
+    { Buffer.add_string buf (Lexing.lexeme lexbuf);
+      read_single_quoted_string buf lexbuf
+    }
+  | _ { raise (Error (Printf.sprintf "Illegal string character: %s" (Lexing.lexeme lexbuf))) }
+| eof { raise (Error ("String is not terminated")) }

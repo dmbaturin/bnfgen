@@ -47,6 +47,7 @@ let () = let filename = ref "" and
         begin
             Arg.parse args (fun f -> filename := f) usage;
             let input = open_in !filename in
+            print_endline !filename;
             let filebuf = Lexing.from_channel input in
             try
                 let g = Bnf_parser.grammar Bnf_lexer.token filebuf in
@@ -54,7 +55,8 @@ let () = let filename = ref "" and
                 else print_endline (reduce !start_symbol g !separator)
             with
             | Bnf_lexer.Error msg ->
-                Printf.eprintf "%s%!" msg
+                Printf.eprintf "%s\n%!" msg
             | Bnf_parser.Error  ->
-                Printf.eprintf "At offset %d: syntax error.\n%!" (Lexing.lexeme_start filebuf)
+                let line, column = Util.get_lexing_position filebuf in
+                Printf.eprintf "Syntax error on line %d, character %d\n%!" line column
         end
