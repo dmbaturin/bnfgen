@@ -88,18 +88,27 @@ let find_production name grammar =
 let sort_rule_parts l =
     List.sort (fun x y -> compare x.weight y.weight) l
 
-let rec reduce_rhs rhs grammar delimiter =
+let depth_exceeded maxdepth depth =
+    match maxdepth with
+    | None -> false
+    | Some maxdepth -> depth > maxdepth
+
+let rec reduce_rhs rhs grammar delimiter maxdepth depth =
     match rhs with
     | [] -> ""
     | hd :: tl ->
         match hd with
-        | Terminal hd -> Printf.sprintf "%s%s%s" hd delimiter (reduce_rhs tl grammar delimiter)
+        | Terminal hd -> Printf.sprintf "%s%s%s" hd delimiter (reduce_rhs tl grammar delimiter maxdepth depth)
         | Nonterminal hd ->
-            Printf.sprintf "%s%s" (reduce hd grammar delimiter) (reduce_rhs tl grammar delimiter)
-and reduce name grammar delimiter =
+            Printf.sprintf "%s%s" (reduce_symbol hd grammar delimiter maxdepth (depth + 1)) (reduce_rhs tl grammar delimiter maxdepth depth)
+and reduce_symbol name grammar delimiter maxdepth depth =
     let r = find_production name grammar in
     match r with
-    | None -> failwith (Printf.sprintf "Rule <%s> not found" name)
+    | None -> failwith (Printf.sprintf "Undefined symbol <%s>" name)
     | Some rhs ->
+        if (depth_exceeded maxdepth depth) then failwith "Maximum recursion depth exceeded" else
         let symbols = pick_element rhs in
-        reduce_rhs symbols grammar delimiter
+        reduce_rhs symbols grammar delimiter maxdepth depth
+
+let reduce ?(maxdepth=None) name grammar delimiter =
+    reduce_symbol name grammar delimiter maxdepth 0

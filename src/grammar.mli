@@ -4,4 +4,4 @@ type rule = { lhs : string; rhs : rule_part list; }
 type grammar = rule list
 val string_of_rules : rule list -> string
 val sort_rule_parts : rule_part list -> rule_part list
-val reduce : string -> rule list -> string -> string
+val reduce : ?maxdepth:(int option) -> string -> rule list -> string -> string

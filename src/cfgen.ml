@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 Daniil Baturin
+ * Copyright (c) 2014, 2019 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,17 +26,20 @@ type cmd_action = Dump | Reduce
 
 let () = Random.self_init()
 
-let () = let filename = ref "" and
-    separator = ref " " and
-    start_symbol = ref "start" and
-    action = ref Reduce in
+let () =
+    let filename = ref "" in
+    let separator = ref " " in
+    let start_symbol = ref "start" in
+    let max_depth = ref None in
+    let action = ref Reduce in
     let args = [
         ("--dump-rules", Arg.Unit (fun () -> action := Dump),
          "Dump production rules and exit");
         ("--separator", Arg.String (fun s -> separator := s),
-         "<string>    Token separator for generated output, default is space");
+         "<string>  Token separator for generated output, default is space");
         ("--start", Arg.String (fun s -> start_symbol := s),
-        "<string>    Start symbol, default is \"start\"");
+        "<string>  Start symbol, default is \"start\"");
+        ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite")
     ] in let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0) in
     if Array.length Sys.argv = 1 then
         begin
@@ -52,11 +55,13 @@ let () = let filename = ref "" and
             try
                 let g = Bnf_parser.grammar Bnf_lexer.token filebuf in
                 if !action = Dump then print_endline (string_of_rules g)
-                else print_endline (reduce !start_symbol g !separator)
+                else print_endline (reduce ~maxdepth:!max_depth !start_symbol g !separator)
             with
-            | Bnf_lexer.Error msg ->
-                Printf.eprintf "%s\n%!" msg
+            | Bnf_lexer.Error msg | Failure msg ->
+                Printf.eprintf "%s\n%!" msg;
+                exit 1
             | Bnf_parser.Error  ->
                 let line, column = Util.get_lexing_position filebuf in
-                Printf.eprintf "Syntax error on line %d, character %d\n%!" line column
+                Printf.eprintf "Syntax error on line %d, character %d\n%!" line column;
+                exit 1
         end
