@@ -50,15 +50,15 @@ let () =
         begin
             Arg.parse args (fun f -> filename := f) usage;
             let input = open_in !filename in
-            print_endline !filename;
             let filebuf = Lexing.from_channel input in
             try
                 let g = Bnf_parser.grammar Bnf_lexer.token filebuf in
+                let () = check_for_duplicates g in
                 if !action = Dump then print_endline (string_of_rules g)
                 else print_endline (reduce ~maxdepth:!max_depth !start_symbol g !separator)
             with
             | Bnf_lexer.Error msg | Failure msg ->
-                Printf.eprintf "%s\n%!" msg;
+                Printf.eprintf "Error: %s\n%!" msg;
                 exit 1
             | Bnf_parser.Error  ->
                 let line, column = Util.get_lexing_position filebuf in

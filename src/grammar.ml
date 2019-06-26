@@ -58,6 +58,17 @@ let string_of_rules r =
     let rule_str_list = List.map string_of_rule r in
     String.concat "\n" rule_str_list
 
+(** Rule sanity checking *)
+let sort_rules rs = List.sort (fun x y -> compare x.lhs y.lhs) rs
+
+let rec check_for_duplicates rs =
+    let rs = sort_rules rs in
+    match rs with
+    | [] | [_] -> ()
+    | r :: r' :: rs ->
+        if r.lhs = r'.lhs then failwith (Printf.sprintf "Duplicate definition of symbol <%s>" r.lhs)
+        else check_for_duplicates (r' :: rs)
+
 (** Rule reduction *)
 
 (* We support weight for cases in rules with alternation.
