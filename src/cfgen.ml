@@ -25,6 +25,11 @@ open Grammar
 
 type cmd_action = Dump | Reduce
 
+let load_grammar filename =
+  let input = open_in filename in
+  let lexbuf = Lexing.from_channel input in
+  Parse_bnf.parse lexbuf (Bnf_parser.Incremental.grammar lexbuf.lex_curr_p)
+
 let () = Random.self_init()
 
 let () =
@@ -42,22 +47,16 @@ let () =
         "<string>  Start symbol, default is \"start\"");
         ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite")
     ] in let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0) in
-    if Array.length Sys.argv = 1 then
-        begin
-            Arg.usage args usage;
-            exit 1
-        end
+    if Array.length Sys.argv = 1 then (Arg.usage args usage; exit 1)
     else
         begin
             Arg.parse args (fun f -> filename := f) usage;
-            let input = open_in !filename in
-            let lexbuf = Lexing.from_channel input in
             try
-                (* let g = Bnf_parser.grammar Bnf_lexer.token filebuf in *)
-                let g = Parse_bnf.parse lexbuf (Bnf_parser.Incremental.grammar lexbuf.lex_curr_p) in
+                let g = load_grammar !filename in
                 let () = check_for_duplicates g in
-                if !action = Dump then print_endline (string_of_rules g)
-                else print_endline (reduce ~maxdepth:!max_depth !start_symbol g !separator)
+                match !action with
+                | Dump -> string_of_rules g |> print_endline
+                | Reduce -> reduce ~maxdepth:!max_depth !start_symbol g !separator |> print_endline
             with
             | Syntax_error (pos, err) ->
                 begin
