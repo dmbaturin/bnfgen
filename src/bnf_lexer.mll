@@ -22,16 +22,13 @@
 
 {
 
+open Util
 open Bnf_parser
-
-exception Error of string
 
 let lexing_error lexbuf msg =
   let line, column = Util.get_lexing_position lexbuf in
-  let err = Printf.sprintf "Syntax error on line %d, character %d: %s" line column msg in
-  raise (Error err)
+  raise (Syntax_error (Some (line, column), msg))
 }
-
 
 rule token = parse
 | '\n' { Lexing.new_line lexbuf; token lexbuf }

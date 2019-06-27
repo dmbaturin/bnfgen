@@ -1,3 +1,4 @@
+open Util
 open Lexing
 
 module I = Bnf_parser.MenhirInterpreter
@@ -7,7 +8,7 @@ let get_parse_error env =
     | lazy Nil -> "Invalid syntax"
     | lazy (Cons (I.Element (state, _, _, _), _)) ->
         try (Bnf_parser_messages.message (I.number state)) with
-        | Not_found -> "Invalid syntax (no specific message for this eror)"
+        | Not_found -> "invalid syntax (no specific message for this eror)"
 
 let rec parse lexbuf (checkpoint : Grammar.grammar I.checkpoint) =
   match checkpoint with
@@ -24,7 +25,7 @@ let rec parse lexbuf (checkpoint : Grammar.grammar I.checkpoint) =
   | I.HandlingError _env ->
       let line, pos = Util.get_lexing_position lexbuf in
       let err = get_parse_error _env in
-      failwith @@ Printf.sprintf "Syntax error on line %d, character %d: %s" line pos err
+      raise (Syntax_error (Some (line, pos), err))
   | I.Accepted v -> v
   | I.Rejected ->
-      failwith "Invalid syntax (parser rejected the input)"
+       raise (Syntax_error (None, "invalid syntax (parser rejected the input)"))

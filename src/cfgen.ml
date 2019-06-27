@@ -20,6 +20,7 @@
  * SOFTWARE.
  *)
 
+open Util
 open Grammar
 
 type cmd_action = Dump | Reduce
@@ -58,7 +59,13 @@ let () =
                 if !action = Dump then print_endline (string_of_rules g)
                 else print_endline (reduce ~maxdepth:!max_depth !start_symbol g !separator)
             with
-            | Bnf_lexer.Error msg | Failure msg ->
+            | Syntax_error (pos, err) ->
+                begin
+                    match pos with
+                    | Some (line, pos) -> Printf.eprintf "Syntax error on line %d, character %d: %s\n%!" line pos err
+                    | None -> Printf.eprintf "Syntax error: %s\n%!" err
+                end
+            | Failure msg ->
                 Printf.eprintf "Error: %s\n%!" msg;
                 exit 1
         end
