@@ -1,0 +1,115 @@
+grammar: IDENTIFIER DEF NUMBER SEMI
+##
+## Ends in an error in state: 8.
+##
+## rule_rhs_part -> NUMBER . rule_rhs_symbols [ SEMI OR EOF ]
+##
+## The known suffix of the stack is as follows:
+## NUMBER
+##
+
+Weight number must be followed by a symbol identifier or a string.
+Example of a valid rule: <start> ::= 10 <foo> | <bar> ;
+
+grammar: IDENTIFIER DEF NUMBER STRING NUMBER
+##
+## Ends in an error in state: 11.
+##
+## rule_rhs_part -> NUMBER rule_rhs_symbols . [ SEMI OR EOF ]
+## rule_rhs_symbols -> rule_rhs_symbols . symbol [ STRING SEMI OR IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## NUMBER rule_rhs_symbols
+##
+
+Weight number found not in the middle of a rule alternative.
+If you meant a literal number, write it in single or double quotes ("42" or '42').
+If you want rule alternatives with different weight, insert a "|" between them.
+Example of a valid rule: <start> ::= 10 <foo> | 5 <bar> | "baz" ;
+
+grammar: IDENTIFIER DEF SEMI
+##
+## Ends in an error in state: 6.
+##
+## rule -> nonterminal DEF . rule_rhs [ SEMI EOF ]
+##
+## The known suffix of the stack is as follows:
+## nonterminal DEF
+##
+
+The right-hand side of a rule is empty or starts with an empty alternative.
+Empty rules (<foo> ::= ;) and empty alternatives (<foo> ::= | "foo") are not allowed.
+Example of a valid rule: <start> ::= <foo> | <bar> ;
+
+grammar: IDENTIFIER DEF STRING NUMBER
+##
+## Ends in an error in state: 14.
+##
+## rule_rhs_part -> rule_rhs_symbols . [ SEMI OR EOF ]
+## rule_rhs_symbols -> rule_rhs_symbols . symbol [ STRING SEMI OR IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## rule_rhs_symbols
+##
+
+Weight number can only appear in the beginning of a rule alternative.
+If you meant a literal number, write it in single or double quotes ("42" or '42').
+If you want rule alternatives with different weight, insert a "|" between them.
+Example of a valid rule: <start> ::= 10 <foo> | 5 <bar> | "baz" ;
+
+grammar: IDENTIFIER DEF STRING OR SEMI
+##
+## Ends in an error in state: 17.
+##
+## rule_rhs -> rule_rhs OR . rule_rhs_part [ SEMI OR EOF ]
+##
+## The known suffix of the stack is as follows:
+## rule_rhs OR
+##
+
+Empty alternative in a right hand side.
+Empty alternatives such as "<foo> | | <bar>") are not allowed.
+Example of a valid rule: <start> ::= <foo> | <bar> ;
+
+grammar: IDENTIFIER STRING
+##
+## Ends in an error in state: 5.
+##
+## rule -> nonterminal . DEF rule_rhs [ SEMI EOF ]
+##
+## The known suffix of the stack is as follows:
+## nonterminal
+##
+
+Left-hand side of a rule must be a single symbol identifier followed by "::=".
+In your rule, a symbol identifier is followed by a string or the right-hand side is empty.
+Example of a valid rule: <foo> ::= "foo" ;
+
+grammar: SEMI STRING
+##
+## Ends in an error in state: 3.
+##
+## option(SEMI) -> SEMI . [ EOF ]
+## rules -> rules SEMI . rule [ SEMI EOF ]
+##
+## The known suffix of the stack is as follows:
+## rules SEMI
+##
+
+Left-hand side of a rule must be a single non-terminal symbol.
+In your rule, a symbol identifier is preceded by a string or the left-hand side is empty.
+The most likely reason is a misplaced semicolon in a previous rule.
+Example of a valid rule: <start> ::= "foo" ;
+
+grammar: STRING
+##
+## Ends in an error in state: 0.
+##
+## grammar' -> . grammar [ # ]
+##
+## The known suffix of the stack is as follows:
+##
+##
+
+# I'm still not quite certain how to end up in this state to be fair.
+Invalid syntax.

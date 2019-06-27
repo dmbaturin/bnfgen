@@ -30,8 +30,8 @@ let lexing_error lexbuf msg =
   let line, column = Util.get_lexing_position lexbuf in
   let err = Printf.sprintf "Syntax error on line %d, character %d: %s" line column msg in
   raise (Error err)
-
 }
+
 
 rule token = parse
 | '\n' { Lexing.new_line lexbuf; token lexbuf }
@@ -42,13 +42,11 @@ rule token = parse
 | '|'
     { OR }
 | '<'
-    { LANGLE }
-| '>'
-    { RANGLE }
+    { read_identifier (Buffer.create 16) lexbuf }
 | ";"
     { SEMI }
 | ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]+) as s
-    { IDENTIFIER s}
+    { lexing_error lexbuf (Printf.sprintf "Symbol identifier \'%s\' must be in angle brackers (<%s>)" s s) }
 | ['0' - '9']+ as i
     { NUMBER (int_of_string i) }
 | eof
@@ -99,3 +97,15 @@ and read_single_quoted_string buf =
       read_single_quoted_string buf lexbuf
     }
   | eof { lexing_error lexbuf "Quoted string is missing the closing single quote" }
+
+and read_identifier buf =
+    parse
+    | '>' { IDENTIFIER (Buffer.contents buf) }
+    | '<' { lexing_error lexbuf "Unmatched left angle bracket" }
+    | ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]+)
+      { Buffer.add_string buf (Lexing.lexeme lexbuf); read_identifier buf lexbuf }
+    | _ as bad_character
+      {
+         let err= Printf.sprintf "Invalid character \"%c\" inside a non-terminal symbol identifier. Did you forget to close a left angle bracket?" bad_character
+         in lexing_error lexbuf err
+      }

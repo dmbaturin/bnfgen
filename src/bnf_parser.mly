@@ -29,8 +29,6 @@
 %token <int> NUMBER
 %token DEF
 %token OR
-%token LANGLE
-%token RANGLE
 %token EOF
 %token SEMI
 
@@ -51,7 +49,7 @@
  */
 
 nonterminal:
-    x = delimited(LANGLE, IDENTIFIER, RANGLE) { x }
+    x = IDENTIFIER { x }
 ;
 
 terminal:
