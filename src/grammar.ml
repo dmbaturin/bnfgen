@@ -52,7 +52,7 @@ let rec string_of_rule_rhs r =
         Printf.sprintf "%s | %s" (string_of_rule_rhs_part hd) (string_of_rule_rhs tl)
 
 let string_of_rule r =
-    Printf.sprintf "%s ::= %s" (string_of_symbol (Nonterminal r.lhs)) (string_of_rule_rhs r.rhs)
+    Printf.sprintf "%s ::= %s;" (string_of_symbol (Nonterminal r.lhs)) (string_of_rule_rhs r.rhs)
 
 let string_of_rules r =
     let rule_str_list = List.map string_of_rule r in
