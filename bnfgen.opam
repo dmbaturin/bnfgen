@@ -1,9 +1,9 @@
 opam-version: "2.0"
-name: "cfgen"
-version: "1.1"
-synopsis: "Context-free grammar based random text generator"
+name: "bnfgen"
+version: "2.0"
+synopsis: "Random text generator that takes context-free grammars from BNF files"
 description: """
-CFGen generates random texts based on user-defined context-free grammars
+BNFGen generates random texts based on user-defined context-free grammars
 specified in a BNF-like syntax.
 You can specify "weight" for rules with alternation to change the probabilities,
 for example, in `<foo> ::= 10 <foo> "foo" | "foo";` the recursive option will be
@@ -12,9 +12,9 @@ ten times more likely to be taken.
 maintainer: "Daniil Baturin <daniil@baturin.org>"
 authors: "Daniil Baturin <daniil@baturin.org>"
 license: "MIT"
-homepage: "https://github.com/dmbaturin/cfgen"
-bug-reports: "https://github.com/dmbaturin/cfgen/issues"
-dev-repo: "git+https://github.com/dmbaturin/cfgen"
+homepage: "https://github.com/dmbaturin/bnfgen"
+bug-reports: "https://github.com/dmbaturin/bnfgen/issues"
+dev-repo: "git+https://github.com/dmbaturin/bnfgen"
 build: [
   ["dune" "subst"] {pinned}
   ["dune" "build" "-p" name]

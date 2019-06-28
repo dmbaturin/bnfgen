@@ -4,6 +4,6 @@
  (modules bnf_parser))
 
 (executable
- (name cfgen)
- (public_name cfgen)
+ (name bnfgen)
+ (public_name bnfgen)
  (libraries menhirLib))
