@@ -35,7 +35,7 @@ $ cat examples/02_english.bnf
 <object> ::= "system" | "compiler" | "program" ;
 <verb> ::= "used" | "installed" | "developed"
 
-$ cfgen examples/02_english.bnf
+$ bnfgen examples/02_english.bnf
 a system administrator installed a compiler
 ```
 
