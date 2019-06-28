@@ -25,6 +25,8 @@ open Grammar
 
 type cmd_action = Dump | Reduce
 
+let print_version () = print_endline "2.0 (2019.06)"
+
 let load_grammar filename =
   let input = open_in filename in
   let lexbuf = Lexing.from_channel input in
@@ -45,7 +47,8 @@ let () =
          "<string>  Token separator for generated output, default is space");
         ("--start", Arg.String (fun s -> start_symbol := s),
         "<string>  Start symbol, default is \"start\"");
-        ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite")
+        ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite");
+        ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
     ] in let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0) in
     if Array.length Sys.argv = 1 then (Arg.usage args usage; exit 1)
     else
