@@ -22,7 +22,7 @@ grammar: IDENTIFIER DEF NUMBER STRING NUMBER
 ## NUMBER rule_rhs_symbols
 ##
 
-Weight number found not in the middle of a rule alternative.
+Weight number found in the middle of a rule alternative.
 If you meant a literal number, write it in single or double quotes ("42" or '42').
 If you want rule alternatives with different weight, insert a "|" between them.
 Example of a valid rule: <start> ::= 10 <foo> | 5 <bar> | "baz" ;
@@ -52,10 +52,8 @@ grammar: IDENTIFIER DEF STRING NUMBER
 ## rule_rhs_symbols
 ##
 
-Weight number can only appear in the beginning of a rule alternative.
-If you meant a literal number, write it in single or double quotes ("42" or '42').
-If you want rule alternatives with different weight, insert a "|" between them.
-Example of a valid rule: <start> ::= 10 <foo> | 5 <bar> | "baz" ;
+Invalid rule or a missing semicolon between rules.
+Example of a valid rule sequence: <start> ::= 10 <foo> | 5 <bar>; <quux> ::= "baz";
 
 grammar: IDENTIFIER DEF STRING OR SEMI
 ##
