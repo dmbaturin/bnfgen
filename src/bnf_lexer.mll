@@ -42,8 +42,8 @@ rule token = parse
     { read_identifier (Buffer.create 16) lexbuf }
 | ";"
     { SEMI }
-| ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]+) as s
-    { lexing_error lexbuf (Printf.sprintf "Symbol identifier \'%s\' must be in angle brackers (<%s>)" s s) }
+| ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]*) as s
+    { lexing_error lexbuf (Printf.sprintf "Symbol identifier \'%s\' must be in angle brackets (<%s>)" s s) }
 | ['0' - '9']+ as i
     { NUMBER (int_of_string i) }
 | eof
@@ -99,7 +99,7 @@ and read_identifier buf =
     parse
     | '>' { IDENTIFIER (Buffer.contents buf) }
     | '<' { lexing_error lexbuf "Unmatched left angle bracket" }
-    | ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]+)
+    | ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]*)
       { Buffer.add_string buf (Lexing.lexeme lexbuf); read_identifier buf lexbuf }
     | _ as bad_character
       {
