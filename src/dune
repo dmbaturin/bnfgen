@@ -3,6 +3,10 @@
  (flags --table)
  (modules bnf_parser))
 
+(rule
+ (targets bnf_parser_messages.ml)
+ (action  (with-stdout-to %{targets} (run menhir --compile-errors ../../../src/bnf_parser.messages bnf_parser.mly))))
+
 (executable
  (name bnfgen)
  (public_name bnfgen)
