@@ -22,9 +22,7 @@ grammar: IDENTIFIER DEF NUMBER STRING NUMBER
 ## NUMBER rule_rhs_symbols
 ##
 
-Weight number found in the middle of a rule alternative.
-If you meant a literal number, write it in single or double quotes ("42" or '42').
-If you want rule alternatives with different weight, insert a "|" between them.
+Unterminated rule (missing semicolon somewhere?)
 Example of a valid rule: <start> ::= 10 <foo> | 5 <bar> | "baz" ;
 
 grammar: IDENTIFIER DEF SEMI
