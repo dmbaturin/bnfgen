@@ -22,7 +22,7 @@ grammar: IDENTIFIER DEF NUMBER STRING NUMBER
 ## NUMBER rule_rhs_symbols
 ##
 
-Unterminated rule (missing semicolon somewhere?)
+Unterminated rule (missing semicolon or vertical line?)
 Example of a valid rule: <start> ::= 10 <foo> | 5 <bar> | "baz" ;
 
 grammar: IDENTIFIER DEF SEMI
