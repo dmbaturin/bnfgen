@@ -103,6 +103,6 @@ and read_identifier buf =
       { Buffer.add_string buf (Lexing.lexeme lexbuf); read_identifier buf lexbuf }
     | _ as bad_character
       {
-         let err= Printf.sprintf "Invalid character \"%c\" inside a non-terminal symbol identifier. Did you forget to close a left angle bracket?" bad_character
+         let err = Printf.sprintf "Invalid character \"%c\" inside a non-terminal symbol identifier. Did you forget to close a left angle bracket?" bad_character
          in lexing_error lexbuf err
       }

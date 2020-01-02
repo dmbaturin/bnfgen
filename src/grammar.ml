@@ -30,6 +30,8 @@ type rule = { lhs: string; rhs: rule_part list }
 
 type grammar = rule list
 
+exception Reduction_error of string
+
 
 (* Anything to string, mainly for parser debug *)
 
@@ -59,9 +61,27 @@ let string_of_rules r =
     String.concat "\n" rule_str_list
 
 (** Rule sanity checking *)
-let sort_rules rs = List.sort (fun x y -> compare x.lhs y.lhs) rs
+let check_for_nonexistent rs =
+    let get_left_hand_sides rs = List.map (fun r -> r.lhs) rs in
+    let get_referenced_nonterminals r =
+        let symbols = r.rhs |> List.map (fun r -> r.symbols) |> List.concat in
+        List.fold_left (fun ss s -> match s with Nonterminal s' -> s' :: ss | _ -> ss) [] symbols
+    in
+    let check_symbol known_symbols s =
+        try ignore @@ List.find ((=) s) known_symbols
+        with _ -> failwith (Printf.sprintf "Undefined symbol <%s>" s)
+    in
+    let rec aux rs known_symbols =
+        match rs with
+        | [] -> ()
+        | r :: rs ->
+            let nts = get_referenced_nonterminals r in
+            let _ = List.iter (check_symbol known_symbols) nts in
+            aux rs known_symbols
+    in aux rs (get_left_hand_sides rs)
 
 let rec check_for_duplicates rs =
+    let sort_rules rs = List.sort (fun x y -> compare x.lhs y.lhs) rs in
     let rs = sort_rules rs in
     match rs with
     | [] | [_] -> ()
@@ -69,16 +89,27 @@ let rec check_for_duplicates rs =
         if r.lhs = r'.lhs then failwith (Printf.sprintf "Duplicate definition of symbol <%s>" r.lhs)
         else check_for_duplicates (r' :: rs)
 
+let check_grammar rs =
+  try
+    let () =
+        check_for_duplicates rs;
+        check_for_nonexistent rs
+    in Ok rs
+  with Failure msg -> Error msg
+
+
 (** Rule reduction *)
 
-(* We support weight for cases in rules with alternation.
-   So we need to support weighted random selection here. *)
+(* We support weight for cases in rules with alternation,
+   so we need to support weighted random selection here. *)
 let total_weight l =
     List.fold_left (fun x y -> x + y.weight) 0 l
 
 let rec weighted_random acc r l =
     match l with
-    | [] -> failwith "Cannot select anything from an empty list"
+    | [] ->
+        (* Shouldn't happen, the parser takes care of it *)
+        failwith "Rule with empty right-hand side"
     | [x] -> x.symbols
     | hd :: tl ->
         let acc' = acc + hd.weight in
@@ -111,15 +142,20 @@ let rec reduce_rhs rhs grammar delimiter maxdepth depth =
         match hd with
         | Terminal hd -> Printf.sprintf "%s%s%s" hd delimiter (reduce_rhs tl grammar delimiter maxdepth depth)
         | Nonterminal hd ->
-            Printf.sprintf "%s%s" (reduce_symbol hd grammar delimiter maxdepth (depth + 1)) (reduce_rhs tl grammar delimiter maxdepth depth)
+            let l = reduce_symbol hd grammar delimiter maxdepth (depth + 1) in
+            let r = reduce_rhs tl grammar delimiter maxdepth depth in
+            Printf.sprintf "%s%s" l r
 and reduce_symbol name grammar delimiter maxdepth depth =
     let r = find_production name grammar in
     match r with
-    | None -> failwith (Printf.sprintf "Undefined symbol <%s>" name)
+    | None ->
+        (* Shouldn't happen since grammar is validated at load time *)
+        raise (Reduction_error (Printf.sprintf "Undefined symbol <%s>" name))
     | Some rhs ->
-        if (depth_exceeded maxdepth depth) then failwith "Maximum recursion depth exceeded" else
+        if (depth_exceeded maxdepth depth) then raise (Reduction_error "Maximum recursion depth exceeded") else
         let symbols = pick_element rhs in
         reduce_rhs symbols grammar delimiter maxdepth depth
 
-let reduce ?(maxdepth=None) name grammar delimiter =
-    reduce_symbol name grammar delimiter maxdepth 0
+let reduce ?(max_depth=None) ?(start_symbol="start") ?(separator="") grammar =
+    try Ok (reduce_symbol start_symbol grammar separator max_depth 0)
+    with Reduction_error msg -> Error msg

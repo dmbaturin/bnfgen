@@ -20,54 +20,42 @@
  * SOFTWARE.
  *)
 
-open Util
-open Grammar
-
 type cmd_action = Dump | Reduce
 
 let print_version () = print_endline "2.0 (2019.06)"
 
-let load_grammar filename =
-  let input = open_in filename in
-  let lexbuf = Lexing.from_channel input in
-  Parse_bnf.parse lexbuf (Bnf_parser.Incremental.grammar lexbuf.lex_curr_p)
-
 let () = Random.self_init()
 
+let filename = ref ""
+let separator = ref " "
+let start_symbol = ref "start"
+let max_depth = ref None
+let action = ref Reduce
+let args = [
+    ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump production rules and exit");
+    ("--separator", Arg.String (fun s -> separator := s),
+      "<string>  Token separator for generated output, default is space");
+    ("--start", Arg.String (fun s -> start_symbol := s),
+      "<string>  Start symbol, default is \"start\"");
+    ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite");
+    ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
+]
+let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0)
+
+let () = if Array.length Sys.argv = 1 then (Arg.usage args usage; exit 1)
+let () = Arg.parse args (fun f -> filename := f) usage
+
 let () =
-    let filename = ref "" in
-    let separator = ref " " in
-    let start_symbol = ref "start" in
-    let max_depth = ref None in
-    let action = ref Reduce in
-    let args = [
-        ("--dump-rules", Arg.Unit (fun () -> action := Dump),
-         "Dump production rules and exit");
-        ("--separator", Arg.String (fun s -> separator := s),
-         "<string>  Token separator for generated output, default is space");
-        ("--start", Arg.String (fun s -> start_symbol := s),
-        "<string>  Start symbol, default is \"start\"");
-        ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite");
-        ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
-    ] in let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0) in
-    if Array.length Sys.argv = 1 then (Arg.usage args usage; exit 1)
-    else
-        begin
-            Arg.parse args (fun f -> filename := f) usage;
-            try
-                let g = load_grammar !filename in
-                let () = check_for_duplicates g in
-                match !action with
-                | Dump -> string_of_rules g |> print_endline
-                | Reduce -> reduce ~maxdepth:!max_depth !start_symbol g !separator |> print_endline
-            with
-            | Syntax_error (pos, err) ->
-                begin
-                    match pos with
-                    | Some (line, pos) -> Printf.eprintf "Syntax error on line %d, character %d: %s\n%!" line pos err
-                    | None -> Printf.eprintf "Syntax error: %s\n%!" err
-                end
-            | Failure msg ->
-                Printf.eprintf "Error: %s\n%!" msg;
-                exit 1
+    let g = Bnfgenlib.load_from_file !filename in
+    match g with
+    | Error msg -> Printf.eprintf "Could not load grammar from %s.\n%s%!\n" !filename msg; exit 1
+    | Ok g ->
+        begin match !action with
+        | Dump -> Bnfgenlib.dump_rules g |> print_endline
+        | Reduce ->
+            let res = Bnfgenlib.generate ~max_depth:!max_depth ~separator:!separator ~start_symbol:!start_symbol g in
+            begin match res with
+            | Ok res -> print_endline res
+            | Error msg -> Printf.eprintf "%s%!\n" msg
+            end
         end
