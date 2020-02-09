@@ -7,6 +7,8 @@ it give you a string that follows that grammar.
 
 Can be used for parser fuzzing or amusement.
 
+An online demo is available at https://baturin.org/tools/bnfgen
+
 # Grammar syntax
 
 The grammar syntax is an ad hoc extension of BNF (as if there's any other kind of BNF extensions).
