@@ -52,7 +52,7 @@ rule token = parse
     { read_single_quoted_string (Buffer.create 16) lexbuf }
 | '"'
     { read_double_quoted_string (Buffer.create 16) lexbuf }
-| '#' [^ '\n']+ '\n'
+| '#' [^ '\n']* '\n'
     { Lexing.new_line lexbuf ; token lexbuf }
 | _ as bad_char
 { lexing_error lexbuf (Printf.sprintf "unexpected character \'%c\'" bad_char) }
