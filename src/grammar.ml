@@ -135,17 +135,19 @@ let depth_exceeded maxdepth depth =
     | None -> false
     | Some maxdepth -> depth > maxdepth
 
-let rec reduce_rhs rhs grammar delimiter maxdepth depth =
+let rec reduce_rhs buffer rhs grammar delimiter maxdepth depth =
     match rhs with
-    | [] -> ""
+    | [] -> ()
     | hd :: tl ->
         match hd with
-        | Terminal hd -> Printf.sprintf "%s%s%s" hd delimiter (reduce_rhs tl grammar delimiter maxdepth depth)
+        | Terminal hd ->
+          Buffer.add_string buffer hd;
+          Buffer.add_string buffer delimiter;
+          reduce_rhs buffer tl grammar delimiter maxdepth depth
         | Nonterminal hd ->
-            let l = reduce_symbol hd grammar delimiter maxdepth (depth + 1) in
-            let r = reduce_rhs tl grammar delimiter maxdepth depth in
-            Printf.sprintf "%s%s" l r
-and reduce_symbol name grammar delimiter maxdepth depth =
+            reduce_symbol buffer hd grammar delimiter maxdepth (depth + 1);
+            reduce_rhs buffer tl grammar delimiter maxdepth depth
+and reduce_symbol buffer name grammar delimiter maxdepth depth =
     let r = find_production name grammar in
     match r with
     | None ->
@@ -154,8 +156,11 @@ and reduce_symbol name grammar delimiter maxdepth depth =
     | Some rhs ->
         if (depth_exceeded maxdepth depth) then raise (Reduction_error "Maximum recursion depth exceeded") else
         let symbols = pick_element rhs in
-        reduce_rhs symbols grammar delimiter maxdepth depth
+        reduce_rhs buffer symbols grammar delimiter maxdepth depth
 
 let reduce ?(max_depth=None) ?(start_symbol="start") ?(separator="") grammar =
-    try Ok (reduce_symbol start_symbol grammar separator max_depth 0)
+    let buffer = Buffer.create 16 in
+    try
+      let () = reduce_symbol buffer start_symbol grammar separator max_depth 0 in
+      Ok (Buffer.contents buffer)
     with Reduction_error msg -> Error msg
