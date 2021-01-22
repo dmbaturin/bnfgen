@@ -31,12 +31,14 @@ let separator = ref " "
 let start_symbol = ref "start"
 let max_depth = ref None
 let action = ref Reduce
+let debug = ref false
 let args = [
     ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump production rules and exit");
     ("--separator", Arg.String (fun s -> separator := s),
       "<string>  Token separator for generated output, default is space");
     ("--start", Arg.String (fun s -> start_symbol := s),
       "<string>  Start symbol, default is \"start\"");
+    ("--debug", Arg.Unit (fun () -> debug := true), "Print debugging information to stderr");
     ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite");
     ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
 ]
@@ -53,7 +55,7 @@ let () =
         begin match !action with
         | Dump -> Bnfgenlib.dump_rules g |> print_endline
         | Reduce ->
-            let res = Bnfgenlib.generate ~max_depth:!max_depth ~separator:!separator ~start_symbol:!start_symbol g in
+            let res = Bnfgenlib.generate ~debug:!debug ~max_depth:!max_depth ~separator:!separator ~start_symbol:!start_symbol g in
             begin match res with
             | Ok res -> print_endline res
             | Error msg -> Printf.eprintf "%s%!\n" msg

@@ -135,7 +135,7 @@ let depth_exceeded maxdepth depth =
     | None -> false
     | Some maxdepth -> depth > maxdepth
 
-let rec reduce_rhs buffer rhs grammar delimiter maxdepth depth =
+let rec reduce_rhs ?(debug=false) buffer rhs grammar delimiter maxdepth depth =
     match rhs with
     | [] -> ()
     | hd :: tl ->
@@ -145,9 +145,10 @@ let rec reduce_rhs buffer rhs grammar delimiter maxdepth depth =
           Buffer.add_string buffer delimiter;
           reduce_rhs buffer tl grammar delimiter maxdepth depth
         | Nonterminal hd ->
-            reduce_symbol buffer hd grammar delimiter maxdepth (depth + 1);
-            reduce_rhs buffer tl grammar delimiter maxdepth depth
-and reduce_symbol buffer name grammar delimiter maxdepth depth =
+            reduce_symbol ~debug:debug buffer hd grammar delimiter maxdepth (depth + 1);
+            reduce_rhs ~debug:debug buffer tl grammar delimiter maxdepth depth
+and reduce_symbol ?(debug=false) buffer name grammar delimiter maxdepth depth =
+    let () = if debug then Printf.eprintf "Reducing symbol <%s>\n" name in
     let r = find_production name grammar in
     match r with
     | None ->
@@ -156,11 +157,12 @@ and reduce_symbol buffer name grammar delimiter maxdepth depth =
     | Some rhs ->
         if (depth_exceeded maxdepth depth) then raise (Reduction_error "Maximum recursion depth exceeded") else
         let symbols = pick_element rhs in
-        reduce_rhs buffer symbols grammar delimiter maxdepth depth
+        let () = if debug then Printf.eprintf "Alternative taken: %s\n" (string_of_rule_rhs_part {weight=1; symbols=symbols}) in
+        reduce_rhs ~debug:debug buffer symbols grammar delimiter maxdepth depth
 
-let reduce ?(max_depth=None) ?(start_symbol="start") ?(separator="") grammar =
+let reduce ?(debug=false) ?(max_depth=None) ?(start_symbol="start") ?(separator="") grammar =
     let buffer = Buffer.create 16 in
     try
-      let () = reduce_symbol buffer start_symbol grammar separator max_depth 0 in
+      let () = reduce_symbol ~debug:debug buffer start_symbol grammar separator max_depth 0 in
       Ok (Buffer.contents buffer)
     with Reduction_error msg -> Error msg
