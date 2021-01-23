@@ -22,7 +22,10 @@
 
 type cmd_action = Dump | Reduce
 
-let print_version () = print_endline "2.0 (2019.06)"
+let print_version () =
+  print_endline "bnfgen 3.0 (2021.01)";
+  print_endline "Copyright: Daniil Baturin, MIT license";
+  print_endline "Homepage: https://github.com/dmbaturin/bnfgen"
 
 let () = Random.self_init()
 
