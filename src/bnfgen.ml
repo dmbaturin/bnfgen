@@ -36,6 +36,7 @@ let max_depth = ref None
 let max_nonprod_depth = ref None
 let action = ref Reduce
 let debug = ref false
+let buffering = ref true
 let args = [
     ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump production rules and exit");
     ("--separator", Arg.String (fun s -> separator := s),
@@ -45,6 +46,7 @@ let args = [
     ("--debug", Arg.Unit (fun () -> debug := true), "Print debugging information to stderr");
     ("--max-reductions", Arg.Int (fun m -> max_depth := (Some m)), "<int> Maximum number of reductions to perform, default is infinite");
     ("--max-nonproductive-reductions", Arg.Int (fun m -> max_nonprod_depth := (Some m)), "<int> Maximum number of reductions that don't produce a terminal, default is infinite");
+    ("--no-buffering", Arg.Unit (fun () -> buffering := false), "Disable output buffering");
     ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
 ]
 let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0)
@@ -61,8 +63,9 @@ let () =
         | Dump -> Bnfgenlib.dump_rules g |> print_endline
         | Reduce ->
             let debug_fun = if !debug then (Printf.eprintf "%s\n%!") else ignore in
+            let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
             let res = Bnfgenlib.generate ~debug:debug_fun ~max_depth:!max_depth ~max_non_productive:!max_nonprod_depth
-              ~separator:!separator ~callback:print_string ~start_symbol:!start_symbol g
+              ~separator:!separator ~callback:out_fun ~start_symbol:!start_symbol g
             in
             begin match res with
             | Ok _ -> print_string "\n"
