@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014, 2019 Daniil Baturin
+ * Copyright (c) 2021 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ let filename = ref ""
 let separator = ref " "
 let start_symbol = ref "start"
 let max_depth = ref None
+let max_nonprod_depth = ref None
 let action = ref Reduce
 let debug = ref false
 let args = [
@@ -39,7 +40,8 @@ let args = [
     ("--start", Arg.String (fun s -> start_symbol := s),
       "<string>  Start symbol, default is \"start\"");
     ("--debug", Arg.Unit (fun () -> debug := true), "Print debugging information to stderr");
-    ("--max-depth", Arg.Int (fun m -> max_depth := (Some m)), "<int>  Maximum recursion depth, default is infinite");
+    ("--max-reductions", Arg.Int (fun m -> max_depth := (Some m)), "<int> Maximum number of reductions to perform, default is infinite");
+    ("--max-nonproductive-reductions", Arg.Int (fun m -> max_nonprod_depth := (Some m)), "<int> Maximum number of reductions that don't produce a terminal, default is infinite");
     ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
 ]
 let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0)
@@ -56,9 +58,11 @@ let () =
         | Dump -> Bnfgenlib.dump_rules g |> print_endline
         | Reduce ->
             let debug_fun = if !debug then (Printf.eprintf "%s\n%!") else ignore in
-            let res = Bnfgenlib.generate ~debug:debug_fun ~max_depth:!max_depth ~separator:!separator ~start_symbol:!start_symbol g in
+            let res = Bnfgenlib.generate ~debug:debug_fun ~max_depth:!max_depth ~max_non_productive:!max_nonprod_depth
+              ~separator:!separator ~callback:print_string ~start_symbol:!start_symbol g
+            in
             begin match res with
-            | Ok res -> print_endline res
+            | Ok _ -> print_string "\n"
             | Error msg -> Printf.eprintf "%s%!\n" msg
             end
         end

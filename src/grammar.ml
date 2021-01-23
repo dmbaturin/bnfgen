@@ -135,23 +135,13 @@ let sort_rule_parts l =
     List.sort (fun x y -> compare x.weight y.weight) l
 
 
-
-let depth_exceeded maxdepth depth =
-    match maxdepth with
-    | None -> false
-    | Some maxdepth -> depth > maxdepth
-
-let rec reduce_symbol ?(debug=ignore) buffer sym_stack depth max_depth separator grammar =
+let reduce_symbol ?(debug=ignore) sym_stack grammar =
   match sym_stack with
-  | [] -> ()
+  | [] -> (None, [])
   | sym :: syms ->
     match sym with
-    | Terminal str ->
-       Buffer.add_string buffer str;
-       Buffer.add_string buffer separator;
-       reduce_symbol ~debug:debug buffer syms (depth + 1) max_depth separator grammar
+    | Terminal t -> (Some t, syms)
     | Nonterminal name ->
-      if (depth_exceeded max_depth depth) then raise (Reduction_error "Maximum recursion depth exceeded") else
       let () = Printf.ksprintf debug "Reducing symbol <%s>" name in
       let rhs = find_production name grammar in
       let rhs =
@@ -161,18 +151,11 @@ let rec reduce_symbol ?(debug=ignore) buffer sym_stack depth max_depth separator
       let new_syms = pick_element rhs in
       let () = Printf.ksprintf debug "Alternative taken: %s" (string_of_rule_rhs_part {weight=1; symbols=new_syms}) in
       let syms = List.append new_syms syms in
-      reduce_symbol ~debug:debug buffer syms (depth + 1) max_depth separator grammar
+      (None, syms)
     | Repeat (s, (min, max)) ->
       if (min > max) then raise (Reduction_error (Printf.sprintf "Malformed range {%d,%d} (min > max)" min max)) else
       let times = if (min = max) then min else ((Random.int (max - min)) + min) in
       let new_syms = List.init times (fun _ -> s) in
       let () = Printf.ksprintf debug "Repetition range {%d,%d}, repeating %d times" min max times in
       let syms = List.append new_syms syms in
-      reduce_symbol ~debug:debug buffer syms depth max_depth separator grammar
-
-let reduce ?(debug=ignore) ?(max_depth=None) ?(start_symbol="start") ?(separator="") grammar =
-    let buffer = Buffer.create 16 in
-    try
-      let () = reduce_symbol ~debug:debug buffer [Nonterminal start_symbol] 0 max_depth separator grammar in
-      Ok (Buffer.contents buffer)
-    with Reduction_error msg -> Error msg
+      (None, syms)

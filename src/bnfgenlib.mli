@@ -8,5 +8,11 @@ val load_from_file : string -> (grammar, string) result
 
 val dump_rules : grammar -> string
 
-val generate : ?debug:(string -> unit) -> ?max_depth:int option -> ?start_symbol:string -> ?separator:string -> grammar -> (string, string) result
+val generate :
+  ?debug:(string -> unit) ->
+  ?max_depth:int option ->
+  ?max_non_productive:int option ->
+  ?start_symbol:string ->
+  ?separator:string ->
+  ?callback:(string -> unit) -> grammar -> (unit, string) result
 
