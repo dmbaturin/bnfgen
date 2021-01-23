@@ -152,6 +152,7 @@ let rec reduce_rhs ?(debug=false) buffer rhs grammar delimiter maxdepth depth =
             reduce_symbol ~debug:debug buffer hd grammar delimiter maxdepth (depth + 1);
             reduce_rhs ~debug:debug buffer tl grammar delimiter maxdepth depth
         | Repeat (s, (min, max)) ->
+          if (min > max) then raise (Reduction_error (Printf.sprintf "Malformed range {%d,%d} (min > max)" min max)) else
           let times = if (min = max) then min else ((Random.int (max - min)) + min) in
           for _ = 1 to times do
             reduce_rhs ~debug:debug buffer [s] grammar delimiter maxdepth depth
