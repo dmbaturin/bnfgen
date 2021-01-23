@@ -9,6 +9,7 @@ val load_from_file : string -> (grammar, string) result
 val dump_rules : grammar -> string
 
 val generate :
+  ?dump_stack:bool ->
   ?debug:(string -> unit) ->
   ?max_depth:int option ->
   ?max_non_productive:int option ->
