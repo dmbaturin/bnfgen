@@ -5,4 +5,4 @@ type grammar = rule list
 val string_of_rules : rule list -> string
 val sort_rule_parts : rule_part list -> rule_part list
 val check_grammar : grammar -> (grammar, string) result
-val reduce : ?debug:bool -> ?max_depth:int option -> ?start_symbol:string -> ?separator:string -> grammar -> (string, string) result
+val reduce : ?debug:(string -> unit) -> ?max_depth:int option -> ?start_symbol:string -> ?separator:string -> grammar -> (string, string) result

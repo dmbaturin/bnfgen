@@ -55,7 +55,8 @@ let () =
         begin match !action with
         | Dump -> Bnfgenlib.dump_rules g |> print_endline
         | Reduce ->
-            let res = Bnfgenlib.generate ~debug:!debug ~max_depth:!max_depth ~separator:!separator ~start_symbol:!start_symbol g in
+            let debug_fun = if !debug then (Printf.eprintf "%s\n%!") else ignore in
+            let res = Bnfgenlib.generate ~debug:debug_fun ~max_depth:!max_depth ~separator:!separator ~start_symbol:!start_symbol g in
             begin match res with
             | Ok res -> print_endline res
             | Error msg -> Printf.eprintf "%s%!\n" msg

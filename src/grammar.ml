@@ -141,7 +141,7 @@ let depth_exceeded maxdepth depth =
     | None -> false
     | Some maxdepth -> depth > maxdepth
 
-let rec reduce_symbol ?(debug=false) buffer sym_stack depth max_depth separator grammar =
+let rec reduce_symbol ?(debug=ignore) buffer sym_stack depth max_depth separator grammar =
   match sym_stack with
   | [] -> ()
   | sym :: syms ->
@@ -152,25 +152,25 @@ let rec reduce_symbol ?(debug=false) buffer sym_stack depth max_depth separator 
        reduce_symbol ~debug:debug buffer syms (depth + 1) max_depth separator grammar
     | Nonterminal name ->
       if (depth_exceeded max_depth depth) then raise (Reduction_error "Maximum recursion depth exceeded") else
-      let () = if debug then Printf.eprintf "Reducing symbol <%s>\n" name in
+      let () = Printf.ksprintf debug "Reducing symbol <%s>" name in
       let rhs = find_production name grammar in
       let rhs =
         if Option.is_some rhs then Option.get rhs
         else raise (Reduction_error (Printf.sprintf "Undefined symbol <%s>" name))
       in
       let new_syms = pick_element rhs in
-      let () = if debug then Printf.eprintf "Alternative taken: %s\n" (string_of_rule_rhs_part {weight=1; symbols=new_syms}) in
+      let () = Printf.ksprintf debug "Alternative taken: %s" (string_of_rule_rhs_part {weight=1; symbols=new_syms}) in
       let syms = List.append new_syms syms in
       reduce_symbol ~debug:debug buffer syms (depth + 1) max_depth separator grammar
     | Repeat (s, (min, max)) ->
       if (min > max) then raise (Reduction_error (Printf.sprintf "Malformed range {%d,%d} (min > max)" min max)) else
       let times = if (min = max) then min else ((Random.int (max - min)) + min) in
       let new_syms = List.init times (fun _ -> s) in
-      let () = if debug then Printf.eprintf "Repetition range {%d,%d}, repeating %d times\n" min max times in
+      let () = Printf.ksprintf debug "Repetition range {%d,%d}, repeating %d times" min max times in
       let syms = List.append new_syms syms in
       reduce_symbol ~debug:debug buffer syms depth max_depth separator grammar
 
-let reduce ?(debug=false) ?(max_depth=None) ?(start_symbol="start") ?(separator="") grammar =
+let reduce ?(debug=ignore) ?(max_depth=None) ?(start_symbol="start") ?(separator="") grammar =
     let buffer = Buffer.create 16 in
     try
       let () = reduce_symbol ~debug:debug buffer [Nonterminal start_symbol] 0 max_depth separator grammar in
