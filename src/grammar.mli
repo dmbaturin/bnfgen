@@ -1,4 +1,4 @@
-type symbol = Terminal of string | Nonterminal of string
+type symbol = Terminal of string | Nonterminal of string | Repeat of symbol * (int * int)
 type rule_part = { weight : int; symbols : symbol list; }
 type rule = { lhs : string; rhs : rule_part list; }
 type grammar = rule list

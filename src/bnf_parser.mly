@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 Daniil Baturin
+ * Copyright (c) 2014, 2021 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,9 @@
 %token OR
 %token EOF
 %token SEMI
+%token LBRACE
+%token RBRACE
+%token COMMA
 
 %start <Grammar.grammar> grammar
 %%
@@ -56,9 +59,15 @@ terminal:
     s = STRING { s }
 ;
 
+repeat_range:
+    | LBRACE; n = NUMBER; RBRACE { (n, n) }
+    | LBRACE; l = NUMBER; COMMA; r = NUMBER; RBRACE { (l, r) }
+;
+
 symbol:
     | s = terminal { Terminal s }
     | s = nonterminal { Nonterminal s }
+    | s = symbol; r = repeat_range { Repeat (s, r) }
 ;
 
 rule_rhs_symbols:

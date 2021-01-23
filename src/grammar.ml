@@ -23,6 +23,7 @@
 type symbol = 
     | Terminal of string 
     | Nonterminal of string
+    | Repeat of symbol * (int * int)
 
 type rule_part = { weight: int; symbols: symbol list }
 
@@ -35,10 +36,13 @@ exception Reduction_error of string
 
 (* Anything to string, mainly for parser debug *)
 
-let string_of_symbol s =
+let rec string_of_symbol s =
     match s with
     | Terminal s -> Printf.sprintf "\"%s\"" s
     | Nonterminal s -> Printf.sprintf "<%s>" s
+    | Repeat (s, (min, max)) ->
+      if (min = max) then Printf.sprintf "%s{%d}" (string_of_symbol s) min
+      else Printf.sprintf "%s{%d-%d}" (string_of_symbol s) min max
 
 let string_of_rule_rhs_part r =
     let l = List.map string_of_symbol r.symbols in
@@ -143,10 +147,16 @@ let rec reduce_rhs ?(debug=false) buffer rhs grammar delimiter maxdepth depth =
         | Terminal hd ->
           Buffer.add_string buffer hd;
           Buffer.add_string buffer delimiter;
-          reduce_rhs buffer tl grammar delimiter maxdepth depth
+          reduce_rhs ~debug:debug buffer tl grammar delimiter maxdepth depth
         | Nonterminal hd ->
             reduce_symbol ~debug:debug buffer hd grammar delimiter maxdepth (depth + 1);
             reduce_rhs ~debug:debug buffer tl grammar delimiter maxdepth depth
+        | Repeat (s, (min, max)) ->
+          let times = if (min = max) then min else ((Random.int (max - min)) + min) in
+          for _ = 1 to times do
+            reduce_rhs ~debug:debug buffer [s] grammar delimiter maxdepth depth
+          done;
+          reduce_rhs ~debug:debug buffer tl grammar delimiter maxdepth depth
 and reduce_symbol ?(debug=false) buffer name grammar delimiter maxdepth depth =
     let () = if debug then Printf.eprintf "Reducing symbol <%s>\n" name in
     let r = find_production name grammar in

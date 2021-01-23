@@ -44,6 +44,9 @@ rule token = parse
     { SEMI }
 | ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]*) as s
     { lexing_error lexbuf (Printf.sprintf "Symbol identifier \'%s\' must be in angle brackets (<%s>)" s s) }
+| '{' { LBRACE }
+| '}' { RBRACE }
+| ',' { COMMA }
 | ['0' - '9']+ as i
     { NUMBER (int_of_string i) }
 | eof
