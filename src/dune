@@ -1,14 +1,5 @@
-(ocamllex bnf_lexer)
-(menhir
- (flags --table)
- (modules bnf_parser))
-
-(rule
- (targets bnf_parser_messages.ml)
- (deps bnf_parser.messages bnf_parser.mly)
- (action  (with-stdout-to %{targets} (run menhir --compile-errors %{deps}))))
-
 (executable
- (name bnfgen)
+ (name bnfgen_cli)
  (public_name bnfgen)
- (libraries menhirLib))
+ (libraries bnfgen))
+

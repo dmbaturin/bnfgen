@@ -1,0 +1,16 @@
+(ocamllex bnf_lexer)
+(menhir
+ (flags --table)
+ (modules bnf_parser))
+
+(rule
+ (targets bnf_parser_messages.ml)
+ (deps bnf_parser.messages bnf_parser.mly)
+ (action  (with-stdout-to %{targets} (run menhir --compile-errors %{deps}))))
+
+(library
+  (name bnfgen)
+  (public_name bnfgen)
+  (synopsis "A library for parsing BNF-like grammars and generating strings")
+  (libraries menhirLib)
+  (flags :standard -color always -safe-string -warn-error -a+8 -w -50))
