@@ -57,16 +57,15 @@ let () = if Array.length Sys.argv = 1 then (Arg.usage args usage; exit 1)
 let () = Arg.parse args (fun f -> filename := f) usage
 
 let () =
-    let g = Bnfgen.load_from_file !filename in
+    let g = Bnfgen.grammar_from_file !filename in
     match g with
     | Error msg -> Printf.eprintf "Could not load grammar from %s.\n%s%!\n" !filename msg; exit 1
     | Ok g ->
         begin match !action with
-        | Dump -> Bnfgen.dump_rules g |> print_endline
+        | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
         | Reduce ->
-            let debug_fun = if !debug then (Printf.eprintf "%s\n%!") else ignore in
             let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
-            let res = Bnfgen.generate ~dump_stack:!dump_stack ~debug:debug_fun ~max_depth:!max_depth ~max_non_productive:!max_nonprod_depth
+            let res = Bnfgen.generate ~dump_stack:!dump_stack ~debug:!debug ~debug_fun:(Printf.eprintf "%s\n%!") ~max_depth:!max_depth ~max_non_productive:!max_nonprod_depth
               ~separator:!separator ~callback:out_fun ~start_symbol:!start_symbol g
             in
             begin match res with

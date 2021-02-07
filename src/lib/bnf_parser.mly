@@ -39,16 +39,19 @@
 %%
 
 /* Usual BNF with minor additions.
-   Terminals are in double quotes. Nonterminals are in angle brackets.
+   Terminals are in single or double quotes. Nonterminals are in angle brackets.
    Left-hand and right-hand sides are separated by "::=".
    Rules are separated by a semicolon to handle multiline rules
    in an LR(1)-friendly manner.
-   Rule parts may contain "weight" before symbols,
+
+   Rule part may have a "weight",
    that affects how often they are selected.
 
+   There are also deterministic repetition rules, written as regex-like ranges.
+
    As in:
-     <start> ::= 10 <nonterminal> "terminal" | "terminal" ;
-     <nonterminal> = "nonterminal"
+     <start> ::= 10 <nonterminal> "terminal" | "terminal"{1,3} ;
+     <nonterminal> ::= "nonterminal";
  */
 
 nonterminal:
@@ -91,7 +94,7 @@ rule_rhs:
 
 rule:
      r = separated_pair(nonterminal, DEF, rule_rhs) {
-         { lhs = (fst r); rhs = (sort_rule_parts (snd r)) }
+       ((fst r), (sort_rule_parts (snd r)))
      }
 ;
 

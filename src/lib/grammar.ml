@@ -20,142 +20,137 @@
  * SOFTWARE.
  *)
 
-type symbol = 
-    | Terminal of string 
-    | Nonterminal of string
-    | Repeat of symbol * (int * int)
+exception Grammar_error of string
 
-type rule_part = { weight: int; symbols: symbol list }
+type symbol =
+  | Terminal of string
+  | Nonterminal of string
+  | Repeat of symbol * (int * int)
 
-type rule = { lhs: string; rhs: rule_part list }
-
+type rule_alternative = { weight: int; symbols: symbol list }
+type rule = string * (rule_alternative list)
 type grammar = rule list
 
-exception Reduction_error of string
-
+let grammar_error s = raise (Grammar_error s)
 
 (* Anything to string, mainly for parser debug *)
 
 let rec string_of_symbol s =
-    match s with
-    | Terminal s -> Printf.sprintf "\"%s\"" s
-    | Nonterminal s -> Printf.sprintf "<%s>" s
-    | Repeat (s, (min, max)) ->
-      if (min = max) then Printf.sprintf "%s{%d}" (string_of_symbol s) min
-      else Printf.sprintf "%s{%d-%d}" (string_of_symbol s) min max
+  match s with
+  | Terminal s -> Printf.sprintf "\"%s\"" s
+  | Nonterminal s -> Printf.sprintf "<%s>" s
+  | Repeat (s, (min, max)) ->
+    if (min = max) then Printf.sprintf "%s{%d}" (string_of_symbol s) min
+    else Printf.sprintf "%s{%d-%d}" (string_of_symbol s) min max
 
 let string_of_rule_rhs_part r =
-    let l = List.map string_of_symbol r.symbols in
-    let sym_str = String.concat " " l in
-    let weight_str = if r.weight = 1 then "" else string_of_int r.weight in
-    String.concat " " [weight_str; sym_str]
+  let l = List.map string_of_symbol r.symbols in
+  let sym_str = String.concat " " l in
+  let weight_str = if r.weight = 1 then "" else string_of_int r.weight in
+  String.concat " " [weight_str; sym_str]
 
 let rec string_of_rule_rhs r =
-    match r with
-    | [] -> ""
-    | [hd] -> string_of_rule_rhs_part hd
-    | hd :: tl ->
-        Printf.sprintf "%s | %s" (string_of_rule_rhs_part hd) (string_of_rule_rhs tl)
+  match r with
+  | [] -> ""
+  | [hd] -> string_of_rule_rhs_part hd
+  | hd :: tl ->
+    Printf.sprintf "%s | %s" (string_of_rule_rhs_part hd) (string_of_rule_rhs tl)
 
 let string_of_rule r =
-    Printf.sprintf "%s ::= %s;" (string_of_symbol (Nonterminal r.lhs)) (string_of_rule_rhs r.rhs)
+  let (name, alts) = r in
+  Printf.sprintf "%s ::= %s;" (string_of_symbol (Nonterminal name)) (string_of_rule_rhs alts)
 
-let string_of_rules r =
-    let rule_str_list = List.map string_of_rule r in
-    String.concat "\n" rule_str_list
+let to_string r =
+  let rule_str_list = List.map string_of_rule r in
+  String.concat "\n" rule_str_list
 
 (** Rule sanity checking *)
 let check_for_nonexistent rs =
-    let get_left_hand_sides rs = List.map (fun r -> r.lhs) rs in
-    let get_referenced_nonterminals r =
-        let symbols = r.rhs |> List.map (fun r -> r.symbols) |> List.concat in
-        List.fold_left (fun ss s -> match s with Nonterminal s' -> s' :: ss | _ -> ss) [] symbols
-    in
-    let check_symbol known_symbols s =
-        try ignore @@ List.find ((=) s) known_symbols
-        with _ -> failwith (Printf.sprintf "Undefined symbol <%s>" s)
-    in
-    let rec aux rs known_symbols =
-        match rs with
-        | [] -> ()
-        | r :: rs ->
-            let nts = get_referenced_nonterminals r in
-            let _ = List.iter (check_symbol known_symbols) nts in
-            aux rs known_symbols
-    in aux rs (get_left_hand_sides rs)
+  let get_left_hand_sides rs = List.map (fun (name, _) -> name) rs in
+  let get_referenced_nonterminals r =
+    let (_, alts) = r in
+    let symbols = alts |> List.map (fun r -> r.symbols) |> List.concat in
+      List.fold_left (fun ss s -> match s with Nonterminal s' -> s' :: ss | _ -> ss) [] symbols
+  in
+  let check_symbol known_symbols s =
+    try ignore @@ List.find ((=) s) known_symbols
+    with _ -> Printf.ksprintf grammar_error "Undefined symbol <%s>" s
+  in
+  let rec aux rs known_symbols =
+    match rs with
+    | [] -> ()
+    | r :: rs ->
+      let nts = get_referenced_nonterminals r in
+      let _ = List.iter (check_symbol known_symbols) nts in
+      aux rs known_symbols
+  in aux rs (get_left_hand_sides rs)
 
 let rec check_for_duplicates rs =
-    let sort_rules rs = List.sort (fun x y -> compare x.lhs y.lhs) rs in
-    let rs = sort_rules rs in
-    match rs with
-    | [] | [_] -> ()
-    | r :: r' :: rs ->
-        if r.lhs = r'.lhs then failwith (Printf.sprintf "Duplicate definition of symbol <%s>" r.lhs)
-        else check_for_duplicates (r' :: rs)
+  let sort_rules rs = List.sort (fun (x, _)  (y, _) -> compare x y) rs in
+  let rs = sort_rules rs in
+  match rs with
+  | [] | [_] -> ()
+  | r :: r' :: rs ->
+    let (name, _) = r in
+    let (name', _) = r' in
+    if name = name' then Printf.ksprintf grammar_error "Duplicate definition of symbol <%s>" name
+    else check_for_duplicates (r' :: rs)
 
 let check_grammar rs =
-  try
-    let () =
-        check_for_duplicates rs;
-        check_for_nonexistent rs
-    in Ok rs
-  with Failure msg -> Error msg
-
+  check_for_duplicates rs;
+  check_for_nonexistent rs
 
 (** Rule reduction *)
 
 (* We support weight for cases in rules with alternation,
    so we need to support weighted random selection here. *)
 let total_weight l =
-    List.fold_left (fun x y -> x + y.weight) 0 l
+  List.fold_left (fun x y -> x + y.weight) 0 l
 
 let rec weighted_random acc r l =
-    match l with
-    | [] ->
-        (* Shouldn't happen, the parser takes care of it *)
-        failwith "Rule with empty right-hand side"
-    | [x] -> x.symbols
-    | hd :: tl ->
-        let acc' = acc + hd.weight in
-        if r < acc' then hd.symbols
-        else weighted_random acc' r tl
+  match l with
+  | [] ->
+    (* Shouldn't happen, the parser takes care of it *)
+    Printf.ksprintf grammar_error "Rule with empty right-hand side"
+  | [x] -> x.symbols
+  | hd :: tl ->
+    let acc' = acc + hd.weight in
+    if r < acc' then hd.symbols
+    else weighted_random acc' r tl
 
 let pick_element l =
-    let tw = total_weight l in
-    let r = Random.int tw in
-    weighted_random 0 r l
+  let tw = total_weight l in
+  let r = Random.int tw in
+  weighted_random 0 r l
 
-let find_production name grammar =
-    try
-        let rule = List.find (fun x -> x.lhs = name) grammar in
-        Some rule.rhs
-    with Not_found -> None
+let find_production name grammar = List.assoc_opt name grammar
 
 let sort_rule_parts l =
-    List.sort (fun x y -> compare x.weight y.weight) l
+  List.sort (fun x y -> compare x.weight y.weight) l
 
-
-let reduce_symbol ?(debug=ignore) sym_stack grammar =
+let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) sym_stack grammar =
   match sym_stack with
   | [] -> (None, [])
   | sym :: syms ->
     match sym with
     | Terminal t -> (Some t, syms)
     | Nonterminal name ->
-      let () = Printf.ksprintf debug "Reducing symbol <%s>" name in
+      let () = if debug then Printf.ksprintf debug_fun "Reducing symbol <%s>" name in
       let rhs = find_production name grammar in
       let rhs =
         if Option.is_some rhs then Option.get rhs
-        else raise (Reduction_error (Printf.sprintf "Undefined symbol <%s>" name))
+        else Printf.ksprintf grammar_error "Undefined symbol <%s>" name
       in
       let new_syms = pick_element rhs in
-      let () = Printf.ksprintf debug "Alternative taken: %s" (string_of_rule_rhs_part {weight=1; symbols=new_syms}) in
+      let () =
+        if debug then Printf.ksprintf debug_fun "Alternative taken: %s" (string_of_rule_rhs_part {weight=1; symbols=new_syms})
+      in
       let syms = List.append new_syms syms in
       (None, syms)
     | Repeat (s, (min, max)) ->
-      if (min > max) then raise (Reduction_error (Printf.sprintf "Malformed range {%d,%d} (min > max)" min max)) else
+      if (min > max) then Printf.ksprintf grammar_error "Malformed range {%d,%d} (min > max)" min max else
       let times = if (min = max) then min else ((Random.int (max - min)) + min) in
       let new_syms = List.init times (fun _ -> s) in
-      let () = Printf.ksprintf debug "Repetition range {%d,%d}, repeating %d times" min max times in
+      let () = if debug then Printf.ksprintf debug_fun "Repetition range {%d,%d}, repeating %d times" min max times in
       let syms = List.append new_syms syms in
       (None, syms)
