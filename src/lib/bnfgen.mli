@@ -21,6 +21,9 @@ val grammar_from_file : string -> (Grammar.grammar, string) result
 
 val grammar_to_string : Grammar.grammar -> string
 
+val check_grammar : Grammar.grammar -> (unit, string) result
+val check_grammar_exn : Grammar.grammar -> unit
+
 val generate :
   ?dump_stack:bool ->
   ?debug:bool ->

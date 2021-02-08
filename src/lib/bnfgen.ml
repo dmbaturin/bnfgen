@@ -36,6 +36,15 @@ let depth_exceeded max_depth depth =
   | None -> false
   | Some max_depth -> depth > max_depth
 
+let check_grammar g =
+  try
+    Grammar.check_grammar g;
+    Ok ()
+  with Grammar.Grammar_error msg ->
+    Error msg
+
+let check_grammar_exn g = Grammar.check_grammar g
+
 let rec _generate ?(dump_stack=false) ?(debug=false) ?(debug_fun=print_endline) ?(max_depth=None) ?(max_non_productive=None) ?(symbols=[Grammar.Nonterminal "start"]) ?(separator="") ?(callback=ignore) grammar depth nonprod_depth =
   let () = if dump_stack then debug_fun @@ Printf.sprintf "Symbol stack: %s\n" (List.map Grammar.string_of_symbol symbols |> String.concat " ") in
   if depth_exceeded max_depth depth then Error ("Maximum total number of reductions exceeded") else
