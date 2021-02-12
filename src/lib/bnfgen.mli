@@ -37,3 +37,4 @@ val check_grammar_exn : Grammar.grammar -> unit
 
 val generate : ?settings:settings -> (string -> unit) -> Grammar.grammar -> string -> (unit, string) result
 
+val generate_string : ?settings:settings -> Grammar.grammar -> string -> (string, string) result

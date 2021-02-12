@@ -87,3 +87,9 @@ let generate ?(settings=default_settings) callback grammar start_symbol =
   in
   try aux settings callback grammar 0 0 [Grammar.Nonterminal start_symbol]
   with Grammar.Grammar_error e -> Error e
+
+let generate_string ?(settings=default_settings) grammar start_symbol =
+  let (>>=) = Result.bind in
+  let buf = Buffer.create 4096 in
+  let res = generate ~settings:settings (Buffer.add_string buf) grammar start_symbol in
+  res >>= (fun () -> Ok (Buffer.contents buf))
