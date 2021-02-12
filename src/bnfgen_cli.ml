@@ -23,31 +23,36 @@
 type cmd_action = Dump | Reduce
 
 let print_version () =
-  print_endline "bnfgen 3.0 (2021.01)";
-  print_endline "Copyright: Daniil Baturin, MIT license";
-  print_endline "Homepage: https://github.com/dmbaturin/bnfgen"
+  print_endline "bnfgen 3.0.0";
+  print_endline "Copyright 2021, Daniil Baturin, MIT license";
+  print_endline "https://github.com/dmbaturin/bnfgen"
 
 let () = Random.self_init()
 
 let filename = ref ""
-let separator = ref " "
 let start_symbol = ref "start"
-let max_depth = ref None
-let max_nonprod_depth = ref None
 let action = ref Reduce
-let debug = ref false
-let dump_stack = ref false
 let buffering = ref true
+
+let settings = ref {Bnfgen.default_settings with
+  debug_fun=(Printf.eprintf "%s\n%!");
+  symbol_separator = " "
+}
+
 let args = [
     ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump production rules and exit");
-    ("--separator", Arg.String (fun s -> separator := s),
+    ("--separator", Arg.String (fun s -> settings := {!settings with symbol_separator=s}),
       "<string>  Token separator for generated output, default is space");
     ("--start", Arg.String (fun s -> start_symbol := s),
       "<string>  Start symbol, default is \"start\"");
-    ("--debug", Arg.Unit (fun () -> debug := true), "Print debugging information to stderr");
-    ("--dump-stack", Arg.Unit (fun () -> dump_stack := true), "Include symbol stack in the debug output");
-    ("--max-reductions", Arg.Int (fun m -> max_depth := (Some m)), "<int> Maximum number of reductions to perform, default is infinite");
-    ("--max-nonproductive-reductions", Arg.Int (fun m -> max_nonprod_depth := (Some m)), "<int> Maximum number of reductions that don't produce a terminal, default is infinite");
+    ("--debug", Arg.Unit (fun () -> settings := {!settings with debug=true}),
+      "Print debugging information to stderr");
+    ("--dump-stack", Arg.Unit (fun () -> settings := {!settings with dump_stack=true}),
+      "Include symbol stack in the debug output");
+    ("--max-reductions", Arg.Int (fun m -> settings := {!settings with max_reductions=(Some m)}),
+      "<int> Maximum number of reductions to perform, default is infinite");
+    ("--max-nonproductive-reductions", Arg.Int (fun m -> settings := {!settings with max_nonproductive_reductions=(Some m)}),
+      "<int> Maximum number of reductions that don't produce a terminal, default is infinite");
     ("--no-buffering", Arg.Unit (fun () -> buffering := false), "Disable output buffering");
     ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
 ]
@@ -65,9 +70,7 @@ let () =
         | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
         | Reduce ->
             let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
-            let res = Bnfgen.generate ~dump_stack:!dump_stack ~debug:!debug ~debug_fun:(Printf.eprintf "%s\n%!") ~max_depth:!max_depth ~max_non_productive:!max_nonprod_depth
-              ~separator:!separator ~callback:out_fun ~start_symbol:!start_symbol g
-            in
+            let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
             begin match res with
             | Ok _ -> print_string "\n"
             | Error msg -> Printf.eprintf "%s%!\n" msg

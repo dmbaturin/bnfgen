@@ -15,6 +15,17 @@ module Grammar : sig
     symbol list -> grammar -> (string option * symbol list)
 end
 
+type settings = {
+  dump_stack: bool;
+  debug: bool;
+  debug_fun: (string -> unit);
+  max_reductions : int option;
+  max_nonproductive_reductions : int option;
+  symbol_separator: string;
+}
+
+val default_settings : settings
+
 val grammar_from_string : string -> (Grammar.grammar, string) result
 val grammar_from_channel : in_channel -> (Grammar.grammar, string) result
 val grammar_from_file : string -> (Grammar.grammar, string) result
@@ -24,13 +35,5 @@ val grammar_to_string : Grammar.grammar -> string
 val check_grammar : Grammar.grammar -> (unit, string) result
 val check_grammar_exn : Grammar.grammar -> unit
 
-val generate :
-  ?dump_stack:bool ->
-  ?debug:bool ->
-  ?debug_fun:(string -> unit) ->
-  ?max_depth:int option ->
-  ?max_non_productive:int option ->
-  ?start_symbol:string ->
-  ?separator:string ->
-  ?callback:(string -> unit) -> Grammar.grammar -> (unit, string) result
+val generate : ?settings:settings -> (string -> unit) -> Grammar.grammar -> string -> (unit, string) result
 

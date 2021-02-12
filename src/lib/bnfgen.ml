@@ -45,26 +45,45 @@ let check_grammar g =
 
 let check_grammar_exn g = Grammar.check_grammar g
 
-let rec _generate ?(dump_stack=false) ?(debug=false) ?(debug_fun=print_endline) ?(max_depth=None) ?(max_non_productive=None) ?(symbols=[Grammar.Nonterminal "start"]) ?(separator="") ?(callback=ignore) grammar depth nonprod_depth =
-  let () = if dump_stack then debug_fun @@ Printf.sprintf "Symbol stack: %s\n" (List.map Grammar.string_of_symbol symbols |> String.concat " ") in
-  if depth_exceeded max_depth depth then Error ("Maximum total number of reductions exceeded") else
-  let out, syms = Grammar.reduce_symbol ~debug:debug symbols grammar in
-  match out with
-  | None ->
-    if syms = [] then Ok () else
-    if depth_exceeded max_non_productive nonprod_depth then Error ("Maximum number of non-productive reductions exceeded") else
-    _generate ~dump_stack:dump_stack ~debug:debug ~debug_fun:debug_fun ~max_depth:max_depth ~max_non_productive:max_non_productive
-      ~symbols:syms ~separator:separator ~callback:callback
-      grammar (depth + 1) (nonprod_depth + 1)
-  | Some str ->
-    let () = callback str in
-    let() = callback separator in
-    if syms = [] then Ok () else
-    _generate ~dump_stack:dump_stack ~debug:debug ~max_depth:max_depth ~max_non_productive:max_non_productive
-      ~symbols:syms ~separator:separator ~callback:callback
-      grammar (depth + 1) 0
+type settings = {
+  dump_stack: bool;
+  debug: bool;
+  debug_fun: (string -> unit);
+  max_reductions : int option;
+  max_nonproductive_reductions : int option;
+  symbol_separator: string;
+}
 
-let generate ?(dump_stack=false) ?(debug=false) ?(debug_fun=print_endline) ?(max_depth=None) ?(max_non_productive=None) ?(start_symbol="start") ?(separator="") ?(callback=ignore) grammar =
-  try _generate ~dump_stack:dump_stack ~debug:debug ~debug_fun:debug_fun ~max_depth:max_depth ~max_non_productive:max_non_productive
-    ~symbols:([Grammar.Nonterminal start_symbol]) ~separator:separator ~callback:callback grammar 0 0
+let default_settings = {
+  dump_stack = false;
+  debug = false;
+  debug_fun = print_endline;
+  max_reductions = None;
+  max_nonproductive_reductions = None;
+  symbol_separator = ""
+}
+
+let generate ?(settings=default_settings) callback grammar start_symbol =
+  let rec aux settings callback grammar reductions nonprod_reductions sym_stack =
+    let () =
+      if settings.dump_stack then begin
+        let syms_str = List.map Grammar.string_of_symbol sym_stack |> String.concat " " |> Printf.sprintf "Symbol stack: %s" in
+        settings.debug_fun syms_str
+      end
+    in
+    if depth_exceeded settings.max_reductions reductions then Error ("Maximum total number of reductions exceeded") else
+    let output, sym_stack = Grammar.reduce_symbol ~debug:settings.debug sym_stack grammar in
+    match output with
+    | None ->
+      if sym_stack = [] then Ok () else
+      if depth_exceeded settings.max_nonproductive_reductions nonprod_reductions
+      then Error ("Maximum number of non-productive reductions exceeded")
+      else aux settings callback grammar (reductions + 1) (nonprod_reductions + 1) sym_stack
+    | Some str ->
+      let () = callback str in
+      let () = callback settings.symbol_separator in
+      if sym_stack = [] then Ok ()
+      else aux settings callback grammar (reductions + 1) 0 sym_stack
+  in
+  try aux settings callback grammar 0 0 [Grammar.Nonterminal start_symbol]
   with Grammar.Grammar_error e -> Error e
