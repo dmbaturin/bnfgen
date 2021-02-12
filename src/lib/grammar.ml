@@ -64,7 +64,14 @@ let to_string r =
   let rule_str_list = List.map string_of_rule r in
   String.concat "\n" rule_str_list
 
-(** Rule sanity checking *)
+(* Rule sanity checking.
+
+   Making illegal states unrepresentable would require dependent types,
+   so we cannot avoid runtime checks.
+
+   The parser takes care of some but not all of these errors,
+   so it's a good idea to run check_grammar on all grammars.
+ *)
 let check_for_nonexistent rs =
   let get_left_hand_sides rs = List.map (fun (name, _) -> name) rs in
   let get_referenced_nonterminals r =
@@ -96,9 +103,27 @@ let rec check_for_duplicates rs =
     if name = name' then Printf.ksprintf grammar_error "Duplicate definition of symbol <%s>" name
     else check_for_duplicates (r' :: rs)
 
+let rec check_for_empty_rules rs =
+  match rs with
+  | [] -> ()
+  | (name, []) :: _ -> Printf.ksprintf grammar_error "Empty rule for symbol <%s>" name
+  | _ :: rs -> check_for_empty_rules rs
+
+let check_repeats rs =
+  let check_rule_repeats (_, r) =
+    let syms = List.map (fun x -> x.symbols) r |> List.concat in
+    List.iter (fun s ->
+      match s with
+      | Repeat (_, (min, max)) ->
+        if (min > max) then Printf.ksprintf grammar_error "Malformed range {%d,%d} (min > max)" min max
+      | _ -> ()) syms
+  in List.iter check_rule_repeats rs
+
 let check_grammar rs =
+  check_for_empty_rules rs;
   check_for_duplicates rs;
-  check_for_nonexistent rs
+  check_for_nonexistent rs;
+  check_repeats rs
 
 (** Rule reduction *)
 
@@ -110,7 +135,6 @@ let total_weight l =
 let rec weighted_random acc r l =
   match l with
   | [] ->
-    (* Shouldn't happen, the parser takes care of it *)
     Printf.ksprintf grammar_error "Rule with empty right-hand side"
   | [x] -> x.symbols
   | hd :: tl ->

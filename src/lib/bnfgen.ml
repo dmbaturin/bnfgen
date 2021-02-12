@@ -13,7 +13,7 @@ let parse lexbuf =
         Error (Printf.sprintf "Syntax error on line %d, character %d: %s" line pos err)
       | None -> Error (Printf.sprintf "Syntax error: %s" err)
     end
-  | Grammar.Grammar_error msg -> Error (Printf.sprintf "Malformed grammar: %s" msg)
+  | Grammar.Grammar_error msg -> Error (Printf.sprintf "Grammar error: %s" msg)
 
 let grammar_from_channel ic =
   let lexbuf = Lexing.from_channel ic in
