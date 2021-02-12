@@ -1,0 +1,24 @@
+# Serial numbers for imaginary proprietary programs.
+# Without ABNF support, simple things can be verbose...
+# I'll add some shortcuts some day.
+
+<letter> ::= 
+  "A" | "B" | "C" | "D" | "E" | "F" | "G" |
+  "H" | "I" | "J" | "K" | "L" | "M" | "N" |
+  "O" | "P" | "Q" | "R" | "S" | "T" | "U" |
+  "V" | "W" | "X" | "Y" | "Z"
+;
+
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+<symbol> ::= <letter> | <digit> ;
+
+# Make every group is exactly five symbols
+<group> ::= <symbol>{5} ;
+
+<groupNotLast> ::= <group> "-" ;
+
+# Allow the total key length to vary from 5 to 7 groups.
+<serialNumber> ::= <groupNotLast>{4,6} <group> ;
+
+<start> ::= <serialNumber>
