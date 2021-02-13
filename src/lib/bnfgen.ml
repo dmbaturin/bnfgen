@@ -72,7 +72,7 @@ let generate ?(settings=default_settings) callback grammar start_symbol =
       end
     in
     if depth_exceeded settings.max_reductions reductions then Error ("Maximum total number of reductions exceeded") else
-    let output, sym_stack = Grammar.reduce_symbol ~debug:settings.debug sym_stack grammar in
+    let output, sym_stack = Grammar.reduce_symbol ~debug:settings.debug ~debug_fun:settings.debug_fun sym_stack grammar in
     match output with
     | None ->
       if sym_stack = [] then Ok () else
