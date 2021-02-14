@@ -2,8 +2,8 @@ BNFGen
 ======
 
 BNFGen generates random text based on context-free grammars.
-You give it a file with your grammar defined in BNF-like syntax,
-it give you a string that follows that grammar.
+You give it a file with your grammar, defined in BNF-like syntax,
+it gives you a string that follows that grammar.
 
 Can be used for parser fuzzing or amusement.
 
@@ -102,25 +102,50 @@ grammar will product strings with lots of a's, some b'c, and few c's.
 
 # Installation
 
-Local installation:
+From the OPAM repository: `opam install bnfgen`.
+
+From a local repo clone: `opam install -w .`.
 
 ```
-opam pin add bnfgen . -n
-opam install bnfgen
+opam pin add bnfgen .
 ```
 
-You can also find some binaries in Github releases.
+You can also find some binaries in the GitHub releases.
 
 # Usage
 
 ```
 Usage: bnfgen [OPTIONS] <BNF file>
-  --dump-rules Dump production rules and exit
+  --dump-rules  Dump production rules and exit
   --separator <string>  Token separator for generated output, default is space
   --start <string>  Start symbol, default is "start"
-  --max-depth <int>  Maximum recursion depth, default is infinite
+  --max-reductions <int>  Maximum reductions, default is infinite
+  --max-nonproductive-reductions <int>  Maximum number of reductions that don't produce a terminal, default is infinite
+  --debug  Enable debug output (symbols processed, alternatives taken...)
+  --dump-stack  Show symbol stack for every reduction (implies --debug)
   --version   Print version and exit
-  -help  Display this list of options
+  -help   Display this list of options
   --help  Display this list of options
 
+```
+
+# Library usage example
+
+```ocaml
+# let g = Bnfgen.grammar_from_string " <greeting> ::= \"hello\" | \"hi\" ; <start> ::= <greeting> \"world\"; " |> Result.get_ok ;;
+val g : Bnfgen.Grammar.grammar =
+  [("greeting",
+    [{Bnfgen.Grammar.weight = 1; symbols = [Bnfgen.Grammar.Terminal "hi"]};
+     {Bnfgen.Grammar.weight = 1; symbols = [Bnfgen.Grammar.Terminal "hello"]}]);
+   ("start",
+    [{Bnfgen.Grammar.weight = 1;
+      symbols =
+       [Bnfgen.Grammar.Nonterminal "greeting"; Bnfgen.Grammar.Terminal "world"]}])]
+
+# Bnfgen.generate_string ~settings:({Bnfgen.default_settings with symbol_separator=" "}) g "start" ;;
+- : (string, string) result = Ok "hello world "
+
+# Bnfgen.generate ~settings:({Bnfgen.default_settings with symbol_separator=""}) print_endline g "start" ;;
+hello world
+- : (unit, string) result = Ok ()
 ```
