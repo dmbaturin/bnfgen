@@ -40,21 +40,21 @@ let settings = ref {Bnfgen.default_settings with
 }
 
 let args = [
-    ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump grammar rules and exit");
-    ("--separator", Arg.String (fun s -> settings := {!settings with symbol_separator=s}),
-      "<string> Token separator for generated output, default is space");
-    ("--start", Arg.String (fun s -> start_symbol := s),
-      "<string>  Start symbol, default is \"start\"");
-    ("--debug", Arg.Unit (fun () -> settings := {!settings with debug=true}),
-      "Print debugging information to stderr");
-    ("--dump-stack", Arg.Unit (fun () -> settings := {!settings with debug=true; dump_stack=true}),
-      "Include symbol stack in the debug output");
-    ("--max-reductions", Arg.Int (fun m -> settings := {!settings with max_reductions=(Some m)}),
-      "<int> Maximum number of reductions to perform, default is infinite");
-    ("--max-nonproductive-reductions", Arg.Int (fun m -> settings := {!settings with max_nonproductive_reductions=(Some m)}),
-      "<int> Maximum number of reductions that don't produce a terminal, default is infinite");
-    ("--no-buffering", Arg.Unit (fun () -> buffering := false), "Disable output buffering");
-    ("--version", Arg.Unit (fun () -> print_version (); exit 0), "Print version and exit")
+  ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump grammar rules and exit");
+  ("--separator", Arg.String (fun s -> settings := {!settings with symbol_separator=s}),
+    "<string> Token separator for generated output, default is space");
+  ("--start", Arg.String (fun s -> start_symbol := s),
+    "<string>  Start symbol, default is \"start\"");
+  ("--debug", Arg.Unit (fun () -> settings := {!settings with debug=true}),
+    "Print debugging information to stderr");
+  ("--dump-stack", Arg.Unit (fun () -> settings := {!settings with debug=true; dump_stack=true}),
+     "Include symbol stack in the debug output");
+  ("--max-reductions", Arg.Int (fun m -> settings := {!settings with max_reductions=(Some m)}),
+    "<int> Maximum number of reductions to perform, default is infinite");
+  ("--max-nonproductive-reductions", Arg.Int (fun m -> settings := {!settings with max_nonproductive_reductions=(Some m)}),
+    "<int> Maximum number of reductions that don't produce a terminal, default is infinite");
+  ("--no-buffering", Arg.Unit (fun () -> buffering := false), "Disable output buffering");
+  ("--version", Arg.Unit (fun () -> print_version (); exit 0), "Print version and exit")
 ]
 let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0)
 
@@ -62,17 +62,17 @@ let () = if Array.length Sys.argv = 1 then (Arg.usage args usage; exit 1)
 let () = Arg.parse args (fun f -> filename := f) usage
 
 let () =
-    let g = Bnfgen.grammar_from_file !filename in
-    match g with
-    | Error msg -> Printf.eprintf "Could not load grammar from %s.\n%s%!\n" !filename msg; exit 1
-    | Ok g ->
-        begin match !action with
-        | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
-        | Reduce ->
-            let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
-            let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
-            begin match res with
-            | Ok _ -> print_string "\n"
-            | Error msg -> Printf.eprintf "%s%!\n" msg
-            end
-        end
+  let g = Bnfgen.grammar_from_file !filename in
+  match g with
+  | Error msg -> Printf.eprintf "Could not load grammar from %s.\n%s%!\n" !filename msg; exit 1
+  | Ok g ->
+    begin match !action with
+    | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
+    | Reduce ->
+      let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
+      let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
+      begin match res with
+      | Ok _ -> print_string "\n"
+      | Error msg -> Printf.eprintf "%s%!\n" msg
+      end
+    end
