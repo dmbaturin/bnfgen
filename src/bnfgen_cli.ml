@@ -25,7 +25,7 @@ type cmd_action = Dump | Reduce
 let print_version () =
   print_endline "bnfgen 3.0.0";
   print_endline "Copyright 2021, Daniil Baturin, MIT license";
-  print_endline "https://github.com/dmbaturin/bnfgen"
+  print_endline "https://baturin.org/tools/bnfgen"
 
 let () = Random.self_init()
 
@@ -40,21 +40,21 @@ let settings = ref {Bnfgen.default_settings with
 }
 
 let args = [
-    ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump production rules and exit");
+    ("--dump-rules", Arg.Unit (fun () -> action := Dump), "Dump grammar rules and exit");
     ("--separator", Arg.String (fun s -> settings := {!settings with symbol_separator=s}),
-      "<string>  Token separator for generated output, default is space");
+      "<string> Token separator for generated output, default is space");
     ("--start", Arg.String (fun s -> start_symbol := s),
       "<string>  Start symbol, default is \"start\"");
     ("--debug", Arg.Unit (fun () -> settings := {!settings with debug=true}),
       "Print debugging information to stderr");
-    ("--dump-stack", Arg.Unit (fun () -> settings := {!settings with dump_stack=true}),
+    ("--dump-stack", Arg.Unit (fun () -> settings := {!settings with debug=true; dump_stack=true}),
       "Include symbol stack in the debug output");
     ("--max-reductions", Arg.Int (fun m -> settings := {!settings with max_reductions=(Some m)}),
       "<int> Maximum number of reductions to perform, default is infinite");
     ("--max-nonproductive-reductions", Arg.Int (fun m -> settings := {!settings with max_nonproductive_reductions=(Some m)}),
       "<int> Maximum number of reductions that don't produce a terminal, default is infinite");
     ("--no-buffering", Arg.Unit (fun () -> buffering := false), "Disable output buffering");
-    ("--version", Arg.Unit (fun () -> print_version (); exit 0), "  Print version and exit")
+    ("--version", Arg.Unit (fun () -> print_version (); exit 0), "Print version and exit")
 ]
 let usage = Printf.sprintf "Usage: %s [OPTIONS] <BNF file>" Sys.argv.(0)
 
