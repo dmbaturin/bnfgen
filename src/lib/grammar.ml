@@ -157,7 +157,9 @@ let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) sym_stack grammar =
   | [] -> (None, [])
   | sym :: syms ->
     match sym with
-    | Terminal t -> (Some t, syms)
+    | Terminal t ->
+      let () = if debug then Printf.ksprintf debug_fun "Emitting terminal \"%s\"" t in
+      (Some t, syms)
     | Nonterminal name ->
       let () = if debug then Printf.ksprintf debug_fun "Reducing symbol <%s>" name in
       let rhs = find_production name grammar in
