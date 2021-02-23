@@ -81,7 +81,8 @@ let generate ?(settings=default_settings) callback grammar start_symbol =
       else aux settings callback grammar (reductions + 1) (nonprod_reductions + 1) sym_stack
     | Some str ->
       let () = callback str in
-      let () = callback settings.symbol_separator in
+      (* Emit a symbol separator, unless it's set to an empty string. *)
+      let () = if settings.symbol_separator <> "" then callback settings.symbol_separator in
       if sym_stack = [] then Ok ()
       else aux settings callback grammar (reductions + 1) 0 sym_stack
   in
