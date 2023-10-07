@@ -49,6 +49,17 @@ Empty rules (<foo> ::= ;) and empty alternatives (<foo> ::= | "foo") are not all
 Example of a valid rule: <start> ::= <foo> | <bar> ;
 ```
 
+Label names can contain: a-z A-Z 0-9 _ -
+
+```
+# example label names
+<label-name>
+<LABEL_NAME>
+<42>
+<---dashes---are---cool--->
+<___underscores___are___cool___too___>
+```
+
 One problem with using straight BNF for driving language _generators_ is that you have no control
 over the process. BNFGen adds two features to fix that.
 
