@@ -102,7 +102,7 @@ and read_identifier buf =
     parse
     | '>' { IDENTIFIER (Buffer.contents buf) }
     | '<' { lexing_error lexbuf "Unmatched left angle bracket" }
-    | ([ 'a' - 'z' 'A' - 'Z' '_'] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' ]*)
+    | ([ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' '-' ] [ 'a' - 'z' 'A' - 'Z' '0' - '9' '_' '-' ]*)
       { Buffer.add_string buf (Lexing.lexeme lexbuf); read_identifier buf lexbuf }
     | _ as bad_character
       {

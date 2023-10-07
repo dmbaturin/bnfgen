@@ -23,7 +23,7 @@
 type cmd_action = Dump | Reduce
 
 let print_version () =
-  print_endline "bnfgen 3.0.0";
+  print_endline "bnfgen 3.1.0";
   print_endline "Copyright 2021, Daniil Baturin, MIT license";
   print_endline "https://baturin.org/tools/bnfgen"
 
