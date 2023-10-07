@@ -106,6 +106,7 @@ Usage: bnfgen [OPTIONS] <BNF file>
   --dump-rules  Dump production rules and exit
   --separator <string>  Token separator for generated output, default is space
   --start <string>  Start symbol, default is "start"
+  --sentences <int> Number of sentences to output, a sentence is what is produced by the starting rule, default is 1
   --max-reductions <int>  Maximum reductions, default is infinite
   --max-nonproductive-reductions <int>  Maximum number of reductions that don't produce a terminal, default is infinite
   --debug  Enable debug output (symbols processed, alternatives taken...)
