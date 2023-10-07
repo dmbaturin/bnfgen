@@ -23,7 +23,7 @@
 type cmd_action = Dump | Reduce
 
 let print_version () =
-  print_endline "bnfgen 3.1.0";
+  print_endline "bnfgen 3.0.0";
   print_endline "Copyright 2021, Daniil Baturin, MIT license";
   print_endline "https://baturin.org/tools/bnfgen"
 
@@ -33,6 +33,7 @@ let filename = ref ""
 let start_symbol = ref "start"
 let action = ref Reduce
 let buffering = ref true
+let productions = ref 1
 
 let settings = ref {Bnfgen.default_settings with
   debug_fun=(Printf.eprintf "%s\n%!");
@@ -45,6 +46,8 @@ let args = [
     "<string> Token separator for generated output, default is space");
   ("--start", Arg.String (fun s -> start_symbol := s),
     "<string>  Start symbol, default is \"start\"");
+  ("--productions", Arg.Int ( fun p -> productions := p),
+    "<int> Number of productions to output, a production is what is produced by the starting rule, default is 1");
   ("--debug", Arg.Unit (fun () -> settings := {!settings with debug=true}),
     "Print debugging information to stderr");
   ("--dump-stack", Arg.Unit (fun () -> settings := {!settings with debug=true; dump_stack=true}),
@@ -69,10 +72,13 @@ let () =
     begin match !action with
     | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
     | Reduce ->
-      let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
-      let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
-      begin match res with
-      | Ok _ -> print_string "\n"
-      | Error msg -> Printf.eprintf "%s%!\n" msg
+      for production = 1 to !productions do
+        if !settings.debug then Printf.ksprintf !settings.debug_fun "Outputting Production %d of %d%!" production !productions;
+          let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
+          let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
+          begin match res with
+          | Ok _ -> print_string "\n"
+          | Error msg -> Printf.eprintf "%s%!\n" msg
+          end
+        done
       end
-    end
