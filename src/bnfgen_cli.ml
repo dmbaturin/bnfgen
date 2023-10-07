@@ -23,7 +23,7 @@
 type cmd_action = Dump | Reduce
 
 let print_version () =
-  print_endline "bnfgen 3.2.0";
+  print_endline "bnfgen 3.0.0";
   print_endline "Copyright 2021, Daniil Baturin, MIT license";
   print_endline "https://baturin.org/tools/bnfgen"
 
@@ -33,7 +33,7 @@ let filename = ref ""
 let start_symbol = ref "start"
 let action = ref Reduce
 let buffering = ref true
-let sentences = ref 1
+let productions = ref 1
 
 let settings = ref {Bnfgen.default_settings with
   debug_fun=(Printf.eprintf "%s\n%!");
@@ -46,8 +46,8 @@ let args = [
     "<string> Token separator for generated output, default is space");
   ("--start", Arg.String (fun s -> start_symbol := s),
     "<string>  Start symbol, default is \"start\"");
-  ("--sentences", Arg.Int ( fun s -> sentences := s),
-    "<int> Number of sentences to output, a sentence is what is produced by the starting rule, default is 1");
+  ("--productions", Arg.Int ( fun p -> productions := p),
+    "<int> Number of productions to output, a production is what is produced by the starting rule, default is 1");
   ("--debug", Arg.Unit (fun () -> settings := {!settings with debug=true}),
     "Print debugging information to stderr");
   ("--dump-stack", Arg.Unit (fun () -> settings := {!settings with debug=true; dump_stack=true}),
@@ -69,16 +69,16 @@ let () =
   match g with
   | Error msg -> Printf.eprintf "Could not load grammar from %s.\n%s%!\n" !filename msg; exit 1
   | Ok g ->
-    for sentence = 1 to !sentences do
-      if !settings.debug then Printf.ksprintf !settings.debug_fun "Outputting Sentence %d of %d%!" sentence !sentences;
-      begin match !action with
-      | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
-      | Reduce ->
-        let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
-        let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
-        begin match res with
-        | Ok _ -> print_string "\n"
-        | Error msg -> Printf.eprintf "%s%!\n" msg
-        end
+    begin match !action with
+    | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
+    | Reduce ->
+      for production = 1 to !productions do
+        if !settings.debug then Printf.ksprintf !settings.debug_fun "Outputting Production %d of %d%!" production !productions;
+          let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
+          let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
+          begin match res with
+          | Ok _ -> print_string "\n"
+          | Error msg -> Printf.eprintf "%s%!\n" msg
+          end
+        done
       end
-    done
