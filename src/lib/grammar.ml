@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2021 Daniil Baturin
+ * Copyright (c) 2024 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ type symbol =
   | Terminal of string
   | Nonterminal of string
   | Repeat of symbol * (int * int)
+  | SymbolMarker of string
 
 type rule_alternative = { weight: int; symbols: symbol list }
 type rule = string * (rule_alternative list)
@@ -37,6 +38,7 @@ let grammar_error s = raise (Grammar_error s)
 
 let rec string_of_symbol s =
   match s with
+  | SymbolMarker name -> Printf.sprintf "(SymbolMarker <%s>)" name
   | Terminal s -> Printf.sprintf "\"%s\"" s
   | Nonterminal s -> Printf.sprintf "<%s>" s
   | Repeat (s, (min, max)) ->
@@ -157,6 +159,9 @@ let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) sym_stack grammar =
   | [] -> (None, [])
   | sym :: syms ->
     match sym with
+    | SymbolMarker name ->
+      let () = if debug then Printf.ksprintf debug_fun "Finished resolving symbol \"%s\"" name in
+      (None, syms)
     | Terminal t ->
       let () = if debug then Printf.ksprintf debug_fun "Emitting terminal \"%s\"" t in
       (Some t, syms)
@@ -171,6 +176,7 @@ let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) sym_stack grammar =
       let () =
         if debug then Printf.ksprintf debug_fun "Alternative taken: %s" (string_of_rule_rhs_part {weight=1; symbols=new_syms})
       in
+      let new_syms = List.append new_syms [(SymbolMarker name)] in
       let syms = List.append new_syms syms in
       (None, syms)
     | Repeat (s, (min, max)) ->

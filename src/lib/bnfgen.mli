@@ -5,6 +5,7 @@ module Grammar : sig
     | Terminal of string
     | Nonterminal of string
     | Repeat of symbol * (int * int)
+    | SymbolMarker of string
 
   type rule_alternative = { weight: int; symbols: symbol list }
   type rule = string * (rule_alternative list)
