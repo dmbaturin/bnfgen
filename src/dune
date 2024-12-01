@@ -1,6 +1,5 @@
 (executable
  (name bnfgen_cli)
  (public_name bnfgen)
- ;(flags (-ccopt -static))
  (libraries bnfgen))
 

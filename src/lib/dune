@@ -12,5 +12,6 @@
   (name bnfgen)
   (public_name bnfgen)
   (synopsis "A library for parsing BNF-like grammars and generating strings")
+  (no_dynlink)
   (libraries menhirLib)
   (flags :standard -color always -safe-string -warn-error -a+8 -w -50))
