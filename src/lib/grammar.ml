@@ -23,10 +23,10 @@
 exception Grammar_error of string
 
 type symbol =
-  | Terminal of string
-  | Nonterminal of string
+  | Terminal of (string * bool)
+  | Nonterminal of (string * bool)
   | Repeat of symbol * (int * int)
-  | SymbolMarker of string
+  | SymbolMarker of (string * bool)
 
 type rule_alternative = { weight: int; symbols: symbol list }
 type rule = string * (rule_alternative list)
@@ -36,11 +36,15 @@ let grammar_error s = raise (Grammar_error s)
 
 (* Anything to string, mainly for parser debug *)
 
+let sticky_flag s =
+  if s then "~" else ""
+
 let rec string_of_symbol s =
   match s with
-  | SymbolMarker name -> Printf.sprintf "(SymbolMarker <%s>)" name
-  | Terminal s -> Printf.sprintf "\"%s\"" s
-  | Nonterminal s -> Printf.sprintf "<%s>" s
+  | SymbolMarker (name, sticky) ->
+    Printf.sprintf "(SymbolMarker <%s>%s)" name (sticky_flag sticky)
+  | Terminal (s, sticky) -> Printf.sprintf "\"%s\"%s" s (sticky_flag sticky)
+  | Nonterminal (s, sticky) -> Printf.sprintf "<%s>%s" s (sticky_flag sticky)
   | Repeat (s, (min, max)) ->
     if (min = max) then Printf.sprintf "%s{%d}" (string_of_symbol s) min
     else Printf.sprintf "%s{%d-%d}" (string_of_symbol s) min max
@@ -60,7 +64,7 @@ let rec string_of_rule_rhs r =
 
 let string_of_rule r =
   let (name, alts) = r in
-  Printf.sprintf "%s ::= %s;" (string_of_symbol (Nonterminal name)) (string_of_rule_rhs alts)
+  Printf.sprintf "%s ::= %s;" (string_of_symbol (Nonterminal (name, false))) (string_of_rule_rhs alts)
 
 let to_string r =
   let rule_str_list = List.map string_of_rule r in
@@ -79,11 +83,11 @@ let check_for_nonexistent rs =
   let get_referenced_nonterminals r =
     let (_, alts) = r in
     let symbols = alts |> List.map (fun r -> r.symbols) |> List.concat in
-      List.fold_left (fun ss s -> match s with Nonterminal s' -> s' :: ss | _ -> ss) [] symbols
+      List.fold_left (fun ss s -> match s with Nonterminal (s', _) -> s' :: ss | _ -> ss) [] symbols
   in
-  let check_symbol known_symbols s =
-    try ignore @@ List.find ((=) s) known_symbols
-    with _ -> Printf.ksprintf grammar_error "Undefined symbol <%s>" s
+  let check_symbol known_symbols name =
+    try ignore @@ List.find ((=) name) known_symbols
+    with _ -> Printf.ksprintf grammar_error "Undefined symbol <%s>" name
   in
   let rec aux rs known_symbols =
     match rs with
@@ -154,18 +158,26 @@ let find_production name grammar = List.assoc_opt name grammar
 let sort_rule_parts l =
   List.sort (fun x y -> compare x.weight y.weight) l
 
-let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) sym_stack grammar =
+let rec make_sticky sym =
+  match sym with
+  | Terminal (name, _) -> Terminal (name, true)
+  | Nonterminal (name, _) -> Nonterminal (name, true)
+  | Repeat (sym, num) -> Repeat ((make_sticky sym), num)
+  | _ -> assert false
+
+let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) ?(separator="") sym_stack grammar =
   match sym_stack with
   | [] -> (None, [])
   | sym :: syms ->
     match sym with
-    | SymbolMarker name ->
-      let () = if debug then Printf.ksprintf debug_fun "Finished resolving symbol \"%s\"" name in
+    | SymbolMarker (name, sticky) ->
+      let () = if debug then Printf.ksprintf debug_fun "Finished resolving symbol %s" (string_of_symbol (Nonterminal (name, sticky))) in
       (None, syms)
-    | Terminal t ->
+    | Terminal (t, sticky) ->
       let () = if debug then Printf.ksprintf debug_fun "Emitting terminal \"%s\"" t in
-      (Some t, syms)
-    | Nonterminal name ->
+      let output = if (sticky || (separator = "")) then t else t ^ separator in
+      (Some output, syms)
+    | Nonterminal (name, sticky) ->
       let () = if debug then Printf.ksprintf debug_fun "Reducing symbol <%s>" name in
       let rhs = find_production name grammar in
       let rhs =
@@ -176,7 +188,16 @@ let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) sym_stack grammar =
       let () =
         if debug then Printf.ksprintf debug_fun "Alternative taken: %s" (string_of_rule_rhs_part {weight=1; symbols=new_syms})
       in
-      let new_syms = List.append new_syms [(SymbolMarker name)] in
+      let new_syms =
+        if not sticky then new_syms
+        else begin
+          let rev_new_syms = List.rev new_syms in
+          let last_sym = List.hd rev_new_syms in
+          let last_sym = make_sticky last_sym in
+          last_sym :: List.tl rev_new_syms |> List.rev
+        end
+      in
+      let new_syms = List.append new_syms [(SymbolMarker (name, sticky))] in
       let syms = List.append new_syms syms in
       (None, syms)
     | Repeat (s, (min, max)) ->

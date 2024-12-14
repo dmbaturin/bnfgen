@@ -72,7 +72,9 @@ let generate ?(settings=default_settings) callback grammar start_symbol =
       end
     in
     if depth_exceeded settings.max_reductions reductions then Error ("Maximum total number of reductions exceeded") else
-    let output, sym_stack = Grammar.reduce_symbol ~debug:settings.debug ~debug_fun:settings.debug_fun sym_stack grammar in
+    let output, sym_stack =
+      Grammar.reduce_symbol ~debug:settings.debug ~debug_fun:settings.debug_fun
+        ~separator:settings.symbol_separator sym_stack grammar in
     match output with
     | None ->
       if sym_stack = [] then Ok () else
@@ -81,8 +83,6 @@ let generate ?(settings=default_settings) callback grammar start_symbol =
       else aux settings callback grammar (reductions + 1) (nonprod_reductions + 1) sym_stack
     | Some str ->
       let () = callback str in
-      (* Emit a symbol separator, unless it's set to an empty string. *)
-      let () = if settings.symbol_separator <> "" then callback settings.symbol_separator in
       if sym_stack = [] then Ok ()
       else aux settings callback grammar (reductions + 1) 0 sym_stack
   in

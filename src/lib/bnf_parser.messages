@@ -1,139 +1,29 @@
-grammar: IDENTIFIER DEF NUMBER SEMI
+grammar: TILDE
 ##
-## Ends in an error in state: 8.
+## Ends in an error in state: 0.
 ##
-## rule_rhs_part -> NUMBER . rule_rhs_symbols [ SEMI OR EOF ]
-##
-## The known suffix of the stack is as follows:
-## NUMBER
-##
-
-Weight number must be followed by a symbol identifier or a string.
-Example of a valid rule: <start> ::= 10 <foo> | <bar> ;
-
-grammar: IDENTIFIER DEF SEMI
-##
-## Ends in an error in state: 6.
-##
-## rule -> nonterminal DEF . rule_rhs [ SEMI EOF ]
+## grammar' -> . grammar [ # ]
 ##
 ## The known suffix of the stack is as follows:
-## nonterminal DEF
+##
 ##
 
-The right-hand side of a rule is empty or starts with an empty alternative.
-Empty rules (<foo> ::= ;) and empty alternatives (<foo> ::= | "foo") are not allowed.
-Example of a valid rule: <start> ::= <foo> | <bar> ;
+Sticky flag (~) must be attached to a symbol.
 
-grammar: IDENTIFIER DEF STRING LBRACE NUMBER COMMA NUMBER STRING
+grammar: SEMI TILDE
 ##
-## Ends in an error in state: 15.
+## Ends in an error in state: 3.
 ##
-## repeat_range -> LBRACE NUMBER COMMA NUMBER . RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+## option(SEMI) -> SEMI . [ EOF ]
+## rules -> rules SEMI . rule [ SEMI EOF ]
 ##
 ## The known suffix of the stack is as follows:
-## LBRACE NUMBER COMMA NUMBER
+## rules SEMI
 ##
 
-Invalid repetition syntax. Did you forget to close a brace?
-Examples of valid rules:
-  <foo> ::= <bar>{1,4}
-  <baz> ::= <foo>{5}
+Sticky flag (~)	must be attached to a symbol.
 
-grammar: IDENTIFIER DEF STRING LBRACE NUMBER COMMA STRING
-##
-## Ends in an error in state: 14.
-##
-## repeat_range -> LBRACE NUMBER COMMA . NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
-##
-## The known suffix of the stack is as follows:
-## LBRACE NUMBER COMMA
-##
-
-Invalid repetition syntax. Should be "{num}" or "{min, max}".
-Examples of valid rules:
-  <foo> ::= <bar>{1,4}
-  <baz> ::= <foo>{5}
-
-grammar: IDENTIFIER DEF STRING LBRACE NUMBER STRING
-##
-## Ends in an error in state: 12.
-##
-## repeat_range -> LBRACE NUMBER . RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
-## repeat_range -> LBRACE NUMBER . COMMA NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
-##
-## The known suffix of the stack is as follows:
-## LBRACE NUMBER
-##
-
-Invalid repetition syntax. Did you forget to close a brace?
-Examples of valid rules:
-  <foo> ::= <bar>{1,4}
-  <baz> ::= <foo>{5}
-
-grammar: IDENTIFIER DEF STRING LBRACE STRING
-##
-## Ends in an error in state: 11.
-##
-## repeat_range -> LBRACE . NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
-## repeat_range -> LBRACE . NUMBER COMMA NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
-##
-## The known suffix of the stack is as follows:
-## LBRACE
-##
-
-Invalid repetition syntax. Should be "{num}" or "{min, max}".
-Examples of valid rules:
-  <foo> ::= <bar>{1,4}
-  <baz> ::= <foo>{5}
-
-grammar: IDENTIFIER DEF STRING OR SEMI
-##
-## Ends in an error in state: 24.
-##
-## rule_rhs -> rule_rhs OR . rule_rhs_part [ SEMI OR EOF ]
-##
-## The known suffix of the stack is as follows:
-## rule_rhs OR
-##
-
-Empty alternative in a right hand side.
-Empty alternatives such as "<foo> | | <bar>") are not allowed.
-Example of a valid rule: <start> ::= <foo> | <bar> ;
-
-grammar: IDENTIFIER DEF STRING RBRACE
-##
-## Ends in an error in state: 10.
-##
-## rule_rhs_symbols -> symbol . [ STRING SEMI OR IDENTIFIER EOF ]
-## symbol -> symbol . repeat_range [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
-##
-## The known suffix of the stack is as follows:
-## symbol
-##
-
-Invalid repetition syntax. Did you forget an opening brace?
-Examples of valid rules:
-  <foo> ::= <bar>{1,4}
-  <baz> ::= <foo>{5}
-
-grammar: IDENTIFIER DEF STRING STRING RBRACE
-##
-## Ends in an error in state: 19.
-##
-## rule_rhs_symbols -> rule_rhs_symbols symbol . [ STRING SEMI OR IDENTIFIER EOF ]
-## symbol -> symbol . repeat_range [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
-##
-## The known suffix of the stack is as follows:
-## rule_rhs_symbols symbol
-##
-
-Invalid repetition syntax. Did you forget an opening brace?
-Examples of valid rules:
-  <foo> ::= <bar>{1,4}
-  <baz> ::= <foo>{5}
-
-grammar: IDENTIFIER STRING
+grammar: IDENTIFIER TILDE
 ##
 ## Ends in an error in state: 5.
 ##
@@ -147,31 +37,165 @@ Left-hand side of a rule must be a single symbol identifier followed by "::=".
 In your rule, a symbol identifier is followed by a string or the right-hand side is empty.
 Example of a valid rule: <foo> ::= "foo" ;
 
-grammar: SEMI STRING
+
+grammar: IDENTIFIER DEF TILDE
 ##
-## Ends in an error in state: 3.
+## Ends in an error in state: 6.
 ##
-## option(SEMI) -> SEMI . [ EOF ]
-## rules -> rules SEMI . rule [ SEMI EOF ]
+## rule -> nonterminal DEF . rule_rhs [ SEMI EOF ]
 ##
 ## The known suffix of the stack is as follows:
-## rules SEMI
+## nonterminal DEF
 ##
 
-Left-hand side of a rule must be a single non-terminal symbol.
-In your rule, a symbol identifier is preceded by a string or the left-hand side is empty.
-The most likely reason is a misplaced semicolon in a previous rule.
-Example of a valid rule: <start> ::= "foo" ;
+Invalid right-hand side of a rule.
+Example of a valid rule: <foo> ::= "foo" ;
 
-grammar: STRING
+grammar: IDENTIFIER DEF NUMBER TILDE
 ##
-## Ends in an error in state: 0.
+## Ends in an error in state: 8.
 ##
-## grammar' -> . grammar [ # ]
+## rule_rhs_part -> NUMBER . rule_rhs_symbols [ SEMI OR EOF ]
 ##
 ## The known suffix of the stack is as follows:
-##
+## NUMBER
 ##
 
-# I'm still not quite certain how to end up in this state to be fair.
-Invalid syntax.
+Invalid right-hand side of a rule.
+Example of a valid rule: <foo> ::= "foo" ;
+
+grammar: IDENTIFIER DEF STRING RBRACE
+##
+## Ends in an error in state: 9.
+##
+## symbol -> terminal . [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+## symbol -> terminal . TILDE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## terminal
+##
+
+Invalid repetition syntax. Did you forget an opening brace?
+Examples of valid rules:
+  <foo> ::= <bar>{1,4}
+  <baz> ::= <foo>{5}
+
+grammar: IDENTIFIER DEF IDENTIFIER TILDE TILDE
+##
+## Ends in an error in state: 11.
+##
+## rule_rhs_symbols -> symbol . [ STRING SEMI OR IDENTIFIER EOF ]
+## symbol -> symbol . repeat_range [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## symbol
+##
+
+Invalid right-hand side of a rule.
+Example of a valid rule: <foo> ::= "foo" ;
+
+grammar: IDENTIFIER DEF IDENTIFIER LBRACE TILDE
+##
+## Ends in an error in state: 12.
+##
+## repeat_range -> LBRACE . NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+## repeat_range -> LBRACE . NUMBER COMMA NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## LBRACE
+##
+
+Invalid repetition syntax. Should be "{num}" or "{min, max}".
+Examples of valid rules:
+  <foo> ::= <bar>{1,4}
+  <baz> ::= <foo>{5}
+
+grammar: IDENTIFIER DEF IDENTIFIER LBRACE NUMBER TILDE
+##
+## Ends in an error in state: 13.
+##
+## repeat_range -> LBRACE NUMBER . RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+## repeat_range -> LBRACE NUMBER . COMMA NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## LBRACE NUMBER
+##
+
+Invalid repetition syntax. Should be "{num}" or "{min, max}".
+Examples of valid rules:
+  <foo> ::= <bar>{1,4}
+  <baz> ::= <foo>{5}
+
+grammar: IDENTIFIER DEF IDENTIFIER LBRACE NUMBER COMMA TILDE
+##
+## Ends in an error in state: 15.
+##
+## repeat_range -> LBRACE NUMBER COMMA . NUMBER RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## LBRACE NUMBER COMMA
+##
+
+Invalid repetition syntax. Should be "{num}" or "{min, max}".
+Examples of valid rules:
+  <foo> ::= <bar>{1,4}
+  <baz> ::= <foo>{5}
+
+grammar: IDENTIFIER DEF IDENTIFIER LBRACE NUMBER COMMA NUMBER TILDE
+##
+## Ends in an error in state: 16.
+##
+## repeat_range -> LBRACE NUMBER COMMA NUMBER . RBRACE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## LBRACE NUMBER COMMA NUMBER
+##
+
+Invalid repetition syntax. Should be "{num}" or "{min, max}".
+Examples of valid rules:
+  <foo> ::= <bar>{1,4}
+  <baz> ::= <foo>{5}
+
+grammar: IDENTIFIER DEF IDENTIFIER IDENTIFIER TILDE TILDE
+##
+## Ends in an error in state: 20.
+##
+## rule_rhs_symbols -> rule_rhs_symbols symbol . [ STRING SEMI OR IDENTIFIER EOF ]
+## symbol -> symbol . repeat_range [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## rule_rhs_symbols symbol
+##
+
+Invalid right-hand side of a rule.
+Example of a valid rule: <start> ::= <foo> | <bar> ;
+
+grammar: IDENTIFIER DEF IDENTIFIER RBRACE
+##
+## Ends in an error in state: 21.
+##
+## symbol -> nonterminal . [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+## symbol -> nonterminal . TILDE [ STRING SEMI OR LBRACE IDENTIFIER EOF ]
+##
+## The known suffix of the stack is as follows:
+## nonterminal
+##
+
+Invalid repetition syntax. Did you forget to close a brace?
+Examples of valid rules:
+  <foo> ::= <bar>{1,4}
+  <baz> ::= <foo>{5}
+
+grammar: IDENTIFIER DEF IDENTIFIER OR TILDE
+##
+## Ends in an error in state: 26.
+##
+## rule_rhs -> rule_rhs OR . rule_rhs_part [ SEMI OR EOF ]
+##
+## The known suffix of the stack is as follows:
+## rule_rhs OR
+##
+
+Invalid	right-hand side of a rule.
+Example of a valid rule: <start> ::= <foo> | <bar> ;
+

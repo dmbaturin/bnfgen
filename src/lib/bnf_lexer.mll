@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014, 2019 Daniil Baturin
+ * Copyright (c) 2024 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,7 @@ rule token = parse
 | '{' { LBRACE }
 | '}' { RBRACE }
 | ',' { COMMA }
+| '~' { TILDE }
 | ['0' - '9']+ as i
     { NUMBER (int_of_string i) }
 | eof

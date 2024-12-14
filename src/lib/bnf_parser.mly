@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014, 2021 Daniil Baturin
+ * Copyright (c) 2024 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@
 %token LBRACE
 %token RBRACE
 %token COMMA
+%token TILDE
 
 %start <Grammar.grammar> grammar
 %%
@@ -67,9 +68,14 @@ repeat_range:
     | LBRACE; l = NUMBER; COMMA; r = NUMBER; RBRACE { (l, r) }
 ;
 
+sticky_flag:
+    | { false }
+    | TILDE { true }
+;
+
 symbol:
-    | s = terminal { Terminal s }
-    | s = nonterminal { Nonterminal s }
+    | str = terminal; sticky = sticky_flag { Terminal (str, sticky) }
+    | name = nonterminal; sticky = sticky_flag { Nonterminal (name, sticky) }
     | s = symbol; r = repeat_range { Repeat (s, r) }
 ;
 
