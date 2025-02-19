@@ -1,0 +1,13 @@
+# This grammar serves as an example of using sicky symbols.
+# There must not be a space between nouns and prefixes like "doubleplus" or "un".
+# Marking a symbol sticky with a tilde after it achieves that result.
+
+<noun> ::= "telescreen" | "speakwrite" | "joycamp" | "bellyfeel" | "prolefeed" ;
+
+<un> ::= "un"{0,1};
+
+<intensifier> ::= "plus" | "doubleplus" | "" ;
+
+<adjective> ::= <intensifier>~ <un>~ "good" ;
+
+<start> ::= <adjective> <noun> ;
