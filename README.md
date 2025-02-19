@@ -90,6 +90,17 @@ Exactly ten of `foo`: `<start> ::= "foo"{10}`.
 
 Up to ten of `foo`: `<start> ::= "foo"{1,10}`.
 
+### Sticky symbols
+
+It is also possible to mark symbols as sticky so that if a non-empty separator is specified,
+those symbols are still attached to the symbol that follows.
+Sticky symbols are marked with a tilde.
+
+```
+<prefix> ::= "non-" | "un-" | "pre-" ;
+<prefixed-noun> ::= <prefix>~ <noun> ;
+```
+
 
 # Installation
 
