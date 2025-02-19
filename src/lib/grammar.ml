@@ -237,7 +237,10 @@ let reduce_symbol ?(debug=false) ?(debug_fun=print_endline) ?(separator="") sym_
       (None, syms)
     | Repeat (s, (min, max)) ->
       if (min > max) then Printf.ksprintf grammar_error "Malformed range {%d,%d} (min > max)" min max else
-      let times = if (min = max) then min else ((Random.int (max - min)) + min) in
+      (* The argument of [Random.int] is an exclusive boundary,
+         while BNFGen ranges are inclusive.
+         We compensate for that by always adding +1 to the boundary. *)
+      let times = if (min = max) then min else ((Random.int (max - min + 1)) + min) in
       let new_syms = List.init times (fun _ -> s) in
       let () = if debug then Printf.ksprintf debug_fun "Repetition range {%d,%d}, repeating %d times" min max times in
       let syms = List.append new_syms syms in
