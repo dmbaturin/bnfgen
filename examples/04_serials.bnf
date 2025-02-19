@@ -1,6 +1,8 @@
 # Serial numbers for imaginary proprietary programs.
 # Without ABNF support, simple things can be verbose...
 # I'll add some shortcuts some day.
+#
+# This grammar demonstrates the use of range parameters.
 
 <letter> ::= 
   "A" | "B" | "C" | "D" | "E" | "F" | "G" |
@@ -18,7 +20,8 @@
 
 <groupNotLast> ::= <group> "-" ;
 
-# Allow the total key length to vary from 5 to 7 groups.
+# Allow the total key length to vary from 4 to 6 groups
+# (range boundaries are inclusive)
 <serialNumber> ::= <groupNotLast>{4,6} <group> ;
 
 <start> ::= <serialNumber>
