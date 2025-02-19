@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2021 Daniil Baturin
+ * Copyright (c) 2025 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,11 +72,10 @@ let () =
     begin match !action with
     | Dump -> Printf.printf "%s\n" @@ Bnfgen.grammar_to_string g
     | Reduce ->
-      let start_symbol = (!start_symbol, false) in
       for production = 1 to !productions do
         if !settings.debug then Printf.ksprintf !settings.debug_fun "Outputting Production %d of %d%!" production !productions;
           let out_fun = if !buffering then print_string else (Printf.printf "%s%!") in
-          let res = Bnfgen.generate ~settings:!settings out_fun g start_symbol in
+          let res = Bnfgen.generate ~settings:!settings out_fun g !start_symbol in
           begin match res with
           | Ok _ -> print_string "\n"
           | Error msg -> Printf.eprintf "%s%!\n" msg

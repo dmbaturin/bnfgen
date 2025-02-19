@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2024 Daniil Baturin
+ * Copyright (c) 2025 Daniil Baturin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,9 @@
    As in:
      <start> ::= 10 <nonterminal> "terminal" | "terminal"{1,3} ;
      <nonterminal> ::= "nonterminal";
+
+   Symbols can also be marked as "sticky" with a tilde to prevent BNFGen
+   from emitting a separator after reducing them: <foo>~
  */
 
 nonterminal:
@@ -68,14 +71,11 @@ repeat_range:
     | LBRACE; l = NUMBER; COMMA; r = NUMBER; RBRACE { (l, r) }
 ;
 
-sticky_flag:
-    | { false }
-    | TILDE { true }
-;
-
 symbol:
-    | str = terminal; sticky = sticky_flag { Terminal (str, sticky) }
-    | name = nonterminal; sticky = sticky_flag { Nonterminal (name, sticky) }
+    | content = terminal { Terminal (content, default_flags) }
+    | content = terminal; TILDE { Terminal (content, {default_flags with sticky=true}) }
+    | name = nonterminal { Nonterminal (name, default_flags) }
+    | name = nonterminal; TILDE { Nonterminal (name, {default_flags with sticky=true}) }
     | s = symbol; r = repeat_range { Repeat (s, r) }
 ;
 

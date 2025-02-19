@@ -86,7 +86,7 @@ let generate ?(settings=default_settings) callback grammar start_symbol =
       if sym_stack = [] then Ok ()
       else aux settings callback grammar (reductions + 1) 0 sym_stack
   in
-  try aux settings callback grammar 0 0 [Grammar.Nonterminal start_symbol]
+  try aux settings callback grammar 0 0 [Grammar.Nonterminal (start_symbol, Grammar.default_flags)]
   with Grammar.Grammar_error e -> Error e
 
 let generate_string ?(settings=default_settings) grammar start_symbol =
