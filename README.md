@@ -1,6 +1,9 @@
 BNFGen
 ======
 
+![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
+![Build](https://github.com/dmbaturin/ocaml-tsort/actions/workflows/main.yml/badge.svg)
+
 BNFGen generates random text based on context-free grammars.
 You give it a file with your grammar, defined using BNF-like syntax,
 it gives you a string that follows that grammar.
